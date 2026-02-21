@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>درگاه ورود امنیتی هرم | YG-Pyramid</title>
+    <style>
+        body {
+            background-color: #050505;
+            color: #d4af37;
+            font-family: 'Tahoma', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            text-align: center;
+            border: 2px solid #d4af37;
+            padding: 40px;
+            border-radius: 15px;
+            background: #111;
+            box-shadow: 0 0 30px rgba(212, 175, 55, 0.5);
+            width: 350px;
+        }
+        input {
+            padding: 12px;
+            width: 90%;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            border: 1px solid #d4af37;
+            background: #222;
+            color: #fff;
+            text-align: center;
+        }
+        .btn {
+            background-color: #d4af37;
+            color: #000;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+        }
+        #access-denied {
+            display: none;
+            color: #ff4444;
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container" id="main-box">
+        <h1>YG-PYRAMID</h1>
+        <p>معمار: ارباب یحیی قاسمی</p>
+        <p style="font-size: 0.8em; color: #aaa;">ورود منوط به تایید مکان است.</p>
+        
+        <input type="email" id="user-email" placeholder="ایمیل رسمی را وارد کنید">
+        <button class="btn" onclick="requestAccess()">تایید هویت و ورود</button>
+    </div>
+
+    <div id="access-denied">
+        <h1>خوردیم به دیوار و برگشتیم!</h1>
+        <p>دسترسی شما به پروتکل هرم مسدود شد.</p>
+    </div>
+
+    <script>
+        function requestAccess() {
+            const email = document.getElementById('user-email').value;
+            if (!email) {
+                alert("لطفاً ایمیل را وارد کنید.");
+                return;
+            }
+
+            // درخواست لوکیشن
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(grantAccess, denyAccess);
+            } else {
+                alert("مرورگر شما پروتکل امنیتی هرم را پشتیبانی نمی‌کند.");
+            }
+        }
+
+        function grantAccess(position) {
+            const lat = position.coords.latitude;
+            const lon = position.coords.longitude;
+            
+            // در این مرحله مختصات در کنسول ثبت می‌شود (یا به تلگرام شما می‌رود)
+            console.log("دسترسی تایید شد توسط:", lat, lon);
+            
+            // تغییر صفحه به پنل اصلی هوش مصنوعی
+            document.getElementById('main-box').innerHTML = `
+                <h2 style="color: #00ff00;">خوش آمدید</h2>
+                <p>هویت شما تایید شد.</p>
+                <p>در حال اتصال به مغز YG-Pyramid...</p>
+            `;
+        }
+
+        function denyAccess(error) {
+            // مخفی کردن کل محتویات سایت
+            document.getElementById('main-box').style.display = 'none';
+            // نمایش پیام مسدودسازی
+            document.getElementById('access-denied').style.display = 'block';
+            document.body.style.backgroundColor = '#200000'; // قرمز تیره برای هشدار
+        }
+    </script>
+</body>
+</html>
