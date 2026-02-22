@@ -3,173 +3,162 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HERAM MULTIVERSE | COMMAND CENTER</title>
+    <title>HERAM AI | مرکز عملیات مهندس قاسمی</title>
     <style>
-        :root { --gold: #d4af37; --bg: #020202; --accent: #00ff41; --red: #ff0000; --panel: rgba(15, 15, 15, 0.95); --oracle: #8a2be2; }
-        body, html { margin: 0; padding: 0; background: var(--bg); color: #e0e0e0; font-family: 'Segoe UI', Tahoma; overflow: hidden; height: 100vh; }
+        :root { --gold: #d4af37; --bg: #020202; --accent: #00ff41; --oracle: #8a2be2; }
+        body, html { margin: 0; padding: 0; background: var(--bg); color: #e0e0e0; font-family: 'Segoe UI', Tahoma; height: 100vh; overflow: hidden; }
         
-        /* پس‌زمینه متحرک ماتریکسی */
+        /* پس‌زمینه ماتریکس */
         #bg-canvas { position: fixed; inset: 0; z-index: -1; opacity: 0.15; }
 
-        /* لایه عمومی با شکوه */
-        #public-interface { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; transition: 1s ease; }
-        .pyramid-loader { width: 0; height: 0; border-left: 50px solid transparent; border-right: 50px solid transparent; border-bottom: 80px solid var(--gold); filter: drop-shadow(0 0 20px var(--gold)); animation: float 3s ease-in-out infinite; cursor: pointer; }
+        /* لایه اصلی گفتگو */
+        #main-interface { display: flex; flex-direction: column; height: 100vh; max-width: 900px; margin: 0 auto; border-left: 1px solid #111; border-right: 1px solid #111; background: rgba(5,5,5,0.8); }
         
-        /* پنل مدیریت حرفه‌ای */
-        #admin-panel { display: none; position: fixed; inset: 0; background: var(--bg); z-index: 1000; grid-template-columns: 280px 1fr; gap: 2px; background: #111; }
-        
-        .sidebar { background: var(--bg); padding: 30px 20px; display: flex; flex-direction: column; border-left: 1px solid #222; }
-        .main-content { background: var(--bg); padding: 40px; overflow-y: auto; position: relative; }
+        header { padding: 15px 25px; border-bottom: 1px solid #222; display: flex; justify-content: space-between; align-items: center; }
+        .pyramid-mini { width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-bottom: 25px solid var(--gold); cursor: pointer; filter: drop-shadow(0 0 5px var(--gold)); }
 
-        .nav-item { padding: 18px; margin-bottom: 12px; border: 1px solid #222; background: #080808; color: #666; cursor: pointer; border-radius: 4px; transition: 0.4s; position: relative; overflow: hidden; }
-        .nav-item:hover { border-color: var(--gold); color: var(--gold); box-shadow: inset 0 0 15px rgba(212, 175, 55, 0.1); }
-        .nav-item.active { border-color: var(--gold); color: var(--gold); background: linear-gradient(90deg, #0a0a0a, #1a1505); }
-        .nav-item.active::after { content: ''; position: absolute; left: 0; top: 0; height: 100%; width: 4px; background: var(--gold); }
+        #chat-display { flex: 1; overflow-y: auto; padding: 25px; display: flex; flex-direction: column; gap: 15px; scroll-behavior: smooth; }
+        .msg { max-width: 80%; padding: 15px; border-radius: 4px; font-size: 14px; line-height: 1.8; position: relative; }
+        .bot { align-self: flex-start; background: #0a0a0a; border: 1px solid #222; color: #ccc; border-right: 3px solid var(--gold); }
+        .user { align-self: flex-end; background: #001a00; border: 1px solid #004400; color: #fff; border-left: 3px solid var(--accent); }
 
-        /* المان‌های گرافیکی استودیوها */
-        .studio-box { display: none; animation: slideUp 0.6s cubic-bezier(0.23, 1, 0.32, 1); }
-        .studio-box.active { display: block; }
-        .stat-card { background: #0a0a0a; border: 1px solid #1a1a1a; padding: 25px; border-radius: 2px; position: relative; transition: 0.3s; }
-        .stat-card:hover { border-color: #333; transform: translateY(-5px); }
+        .input-box { padding: 20px; background: #080808; display: flex; gap: 10px; border-top: 1px solid #222; }
+        input { flex: 1; background: #000; border: 1px solid #333; color: #fff; padding: 15px; border-radius: 4px; outline: none; transition: 0.3s; }
+        input:focus { border-color: var(--gold); box-shadow: 0 0 10px rgba(212,175,55,0.1); }
+        button { background: var(--gold); color: #000; border: none; padding: 0 25px; font-weight: bold; cursor: pointer; border-radius: 4px; }
 
-        /* استودیو پیشگویی اختصاصی */
-        .oracle-sphere { width: 100px; height: 100px; background: radial-gradient(circle, var(--oracle), transparent); border-radius: 50%; margin: 20px auto; filter: blur(20px); animation: pulse 2s infinite; }
+        /* پنل مدیریت (استودیوها) */
+        #admin-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 1000; padding: 40px; }
+        .studio-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-top: 30px; }
+        .card { background: #0a0a0a; border: 1px solid #222; padding: 20px; border-radius: 2px; }
 
-        @keyframes float { 0%, 100% { transform: translateY(0) rotateY(0); } 50% { transform: translateY(-20px) rotateY(180deg); } }
-        @keyframes pulse { 0% { opacity: 0.4; transform: scale(1); } 50% { opacity: 1; transform: scale(1.2); } 100% { opacity: 0.4; transform: scale(1); } }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* کنسول کد */
-        #console-out { background: #000; border: 1px solid #222; padding: 15px; height: 200px; overflow-y: auto; font-family: 'Courier New', monospace; font-size: 13px; color: var(--accent); }
+        @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
     </style>
 </head>
 <body>
 
 <canvas id="bg-canvas"></canvas>
 
-<div id="public-interface">
-    <div class="pyramid-loader" onclick="requestAccess()"></div>
-    <h1 style="color: var(--gold); letter-spacing: 8px; margin-top: 40px; text-shadow: 0 0 20px rgba(212,175,55,0.5);">HERAM OS</h1>
-    <p id="system-status" style="color: #444; font-size: 11px; text-transform: uppercase;">Awaiting Master's Resonance...</p>
-</div>
-
-<div id="admin-panel">
-    <div class="sidebar">
-        <h2 style="color: var(--gold); font-size: 22px; margin-bottom: 5px;">فرماندهی کل</h2>
-        <p style="font-size: 9px; color: #444; margin-bottom: 40px;">YG-ENGINE v9.0 | 2026</p>
-        
-        <div class="nav-item active" onclick="tab('monitor')">📡 پایش و امنیت لایه‌ای</div>
-        <div class="nav-item" onclick="tab('oracle')">🔮 استودیو پیشگویی و فکر عمیق</div>
-        <div class="nav-item" onclick="tab('economic')">📉 هوش اقتصادی و بازار</div>
-        <div class="nav-item" onclick="tab('tech')">🛠️ مهندسی هسته (Core)</div>
-        <div class="nav-item" onclick="tab('security')">🛡️ دیوار اخلاق (دروغ ممنوع)</div>
-        
-        <div style="margin-top: auto;">
-            <button onclick="location.reload()" style="width: 100%; padding: 12px; background: transparent; border: 1px solid var(--red); color: var(--red); cursor: pointer;">پایان نشست امنیتی</button>
+<div id="main-interface">
+    <header>
+        <div>
+            <span style="color: var(--gold); font-weight: bold; letter-spacing: 2px;">HERAM AI</span>
+            <span style="font-size: 10px; color: #444; margin-right: 15px;">CORE V9.0</span>
         </div>
+        <div class="pyramid-mini" onclick="checkMaster()" title="ورود به ایستگاه فرماندهی"></div>
+    </header>
+
+    <div id="chat-display">
+        <div class="msg bot">سیستم هوشمند هرم با موفقیت بارگذاری شد. خوش آمدید مهندس یحیی قاسمی. آماده دریافت فرامین و تحلیل‌های شما هستم.</div>
     </div>
 
-    <div class="main-content">
-        <div id="monitor" class="studio-box active">
-            <h2 style="color: var(--gold);">جریان داده‌های زنده</h2>
-            <div id="console-out">
-                > سیستم در وضعیت ایمن بارگذاری شد...<br>
-                > تمام پروتکل‌های "دروغ ممنوع" در لایه ۳ فعال هستند.<br>
-            </div>
-        </div>
+    <div class="input-box">
+        <input type="text" id="user-input" placeholder="فرمان یا پرسش خود را وارد کنید..." onkeypress="if(event.key==='Enter') execute()">
+        <button onclick="execute()">ارسال</button>
+    </div>
+</div>
 
-        <div id="oracle" class="studio-box">
-            <h2 style="color: var(--oracle);">واحد پیشگویی و تحلیل لایه‌های زمان</h2>
-            <div class="stat-card" style="text-align: center;">
-                <div class="oracle-sphere"></div>
-                <input type="text" id="ora-input" placeholder="موضوعی را برای تحلیل عمیق بنویسید..." 
-                       style="width: 80%; background: #000; border: 1px solid var(--oracle); padding: 15px; color: white; border-radius: 5px;">
-                <br><br>
-                <button onclick="deepThink()" style="background: var(--oracle); border: none; padding: 12px 40px; color: white; cursor: pointer; font-weight: bold; border-radius: 4px;">فراخوانی فکر عمیق</button>
-                <p id="ora-result" style="margin-top: 30px; line-height: 2; color: #bbb;"></p>
-            </div>
+<div id="admin-overlay">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h2 style="color: var(--gold); margin: 0;">ایستگاه فرماندهی استودیوها</h2>
+        <button onclick="closeAdmin()" style="background:red; color:white;">بستن پنل</button>
+    </div>
+    <div class="studio-grid">
+        <div class="card">
+            <h3 style="color:var(--oracle);">🔮 پیشگویی لایه‌ای</h3>
+            <p id="ora-status">آماده برای فکر عمیق...</p>
+            <button onclick="runOracle()" style="background:var(--oracle); width:100%; color:white; border:none; padding:10px; cursor:pointer;">تحلیل آینده</button>
         </div>
-
-        <div id="economic" class="studio-box">
-            <h2 style="color: #ff8c00;">داشبورد هوش مالی امپراتوری</h2>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                <div class="stat-card">سودآوری تجمعی: <h3 style="color: var(--accent);">+۹۲.۴٪</h3></div>
-                <div class="stat-card">ارزش دارایی دیجیتال: <h3 style="color: var(--gold);">۱۸.۹M</h3></div>
-            </div>
+        <div class="card">
+            <h3 style="color:orange;">📈 هوش اقتصادی</h3>
+            <p>سودآوری: <span style="color:var(--accent);">+۹۲٪</span></p>
         </div>
-
-        <div id="security" class="studio-box">
-            <h2 style="color: var(--red);">پروتکل‌های حفاظتی و فیلترینگ</h2>
-            <div class="stat-card">
-                <p>سیستم به طور خودکار هرگونه «دروغ» یا «بی‌ادبی» را شناسایی و آی‌پی کاربر را در لایه سیاه قرار می‌دهد.</p>
-                <div id="blacklist" style="color: var(--red); font-family: monospace;"></div>
-            </div>
+        <div class="card">
+            <h3 style="color:var(--red);">🛡️ امنیت اخلاق</h3>
+            <p>قانون: <span style="color:var(--gold);">دروغ ممنوع</span></p>
         </div>
     </div>
 </div>
 
 <script>
-    const MASTER_KEY = "1379";
-    let fails = 0;
+    const KEY = "1379";
+    const chatDisplay = document.getElementById('chat-display');
 
-    // افکت ماتریکسی پس‌زمینه
+    // ماتریکس بک‌گراند
     const canvas = document.getElementById('bg-canvas');
     const ctx = canvas.getContext('2d');
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    const chars = "YG-HERAM-0101";
-    const drops = Array(Math.floor(canvas.width / 20)).fill(1);
-    function draw() {
+    canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+    const columns = Math.floor(canvas.width / 20);
+    const yPos = Array(columns).fill(0);
+
+    function matrix() {
         ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.fillStyle = "#0f0";
-        drops.forEach((y, i) => {
-            const text = chars[Math.floor(Math.random() * chars.length)];
-            ctx.fillText(text, i * 20, y * 20);
-            if (y * 20 > canvas.height && Math.random() > 0.975) drops[i] = 0;
-            drops[i]++;
+        ctx.font = "15px monospace";
+        yPos.forEach((y, i) => {
+            const text = String.fromCharCode(Math.random() * 128);
+            ctx.fillText(text, i * 20, y);
+            if (y > canvas.height && Math.random() > 0.975) yPos[i] = 0;
+            else yPos[i] += 20;
         });
     }
-    setInterval(draw, 50);
+    setInterval(matrix, 50);
 
-    function requestAccess() {
-        const lock = localStorage.getItem('h_lock');
-        if(lock && Date.now() < lock) return alert("سیستم به دلیل نفوذ ناموفق قفل شده است.");
+    // منطق گفتگو
+    function execute() {
+        const input = document.getElementById('user-input');
+        const val = input.value.trim();
+        if(!val) return;
 
-        const p = prompt("هویت خود را تایید کنید، مهندس:");
-        if(p === MASTER_KEY) {
-            document.getElementById('public-interface').style.opacity = '0';
-            setTimeout(() => {
-                document.getElementById('public-interface').style.display = 'none';
-                document.getElementById('admin-panel').style.display = 'grid';
-                speak("خوش آمدید مهندس یحیی قاسمی. قدرت در دستان شماست.");
-            }, 1000);
-        } else {
-            fails++;
-            if(fails >= 5) {
-                localStorage.setItem('h_lock', Date.now() + (30*24*60*60*1000));
-                alert("پروتکل خودتخریبی امنیتی فعال شد.");
+        addMsg(val, 'user');
+        input.value = '';
+
+        if(val === KEY) {
+            checkMaster();
+            return;
+        }
+
+        // پاسخ هوش مصنوعی با رعایت ادب و قوانین
+        setTimeout(() => {
+            let reply = "";
+            if(val.includes("دروغ")) {
+                reply = "مهندس، طبق قانون اول امپراتوری هرم، دروغ ممنوع است. تمام داده‌های من بر اساس حقیقت مطلق تحلیل می‌شوند.";
+            } else if(val.includes("پیشگویی")) {
+                reply = "برای دسترسی به واحد پیشگویی و فکر عمیق، لطفاً از درگاه فرماندهی (هرم طلایی بالا) وارد شوید.";
+            } else {
+                reply = "درخواست شما در لایه‌های پردازشی هرم ثبت شد. آیا مایلید تحلیل عمیق‌تری روی این موضوع انجام دهم؟";
             }
+            addMsg(reply, 'bot');
+            speak(reply);
+        }, 1000);
+    }
+
+    function addMsg(text, type) {
+        const d = document.createElement('div');
+        d.className = `msg ${type}`;
+        d.innerText = text;
+        chatDisplay.appendChild(d);
+        chatDisplay.scrollTop = chatDisplay.scrollHeight;
+    }
+
+    function checkMaster() {
+        const p = prompt("کد شناسایی مهندس قاسمی:");
+        if(p === KEY) {
+            document.getElementById('admin-overlay').style.display = 'block';
+            speak("دسترسی به استودیوهای فرماندهی تایید شد.");
         }
     }
 
-    function tab(id) {
-        document.querySelectorAll('.studio-box').forEach(b => b.classList.remove('active'));
-        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-        event.target.classList.add('active');
-    }
+    function closeAdmin() { document.getElementById('admin-overlay').style.display = 'none'; }
 
-    function deepThink() {
-        const q = document.getElementById('ora-input').value;
-        const res = document.getElementById('ora-result');
-        if(!q) return;
-        res.innerHTML = "در حال تجمیع داده‌های کل جهان و عبور از لایه‌های زمان...";
-        speak("مهندس، در حال فکر عمیق هستم. لطفاً شکیبا باشید.");
+    function runOracle() {
+        const s = document.getElementById('ora-status');
+        s.innerText = "در حال تحلیل لایه‌های زمان و فکر عمیق...";
         setTimeout(() => {
-            res.innerHTML = `<span style="color:var(--gold);">[تحلیل نهایی]:</span> موضوع "${q}" در تار و پود آینده به شکلی رقم خواهد خورد که امپراتوری هرم در کانون قدرت آن قرار گیرد. ضریب موفقیت: ۹۴٪.`;
-            speak("تحلیل با موفقیت استخراج شد.");
-        }, 3500);
+            s.innerHTML = "<span style='color:var(--gold);'>تحلیل نهایی:</span> امپراتوری هرم در مسیر تثبیت قدرت جهانی قرار دارد.";
+            speak("پیشگویی انجام شد.");
+        }, 3000);
     }
 
     function speak(t) {
@@ -178,15 +167,6 @@
         u.lang = 'fa-IR';
         window.speechSynthesis.speak(u);
     }
-
-    // شبیه‌ساز لاگ حرفه‌ای
-    setInterval(() => {
-        const out = document.getElementById('console-out');
-        const ips = ["192.168.1.102", "5.102.33.1", "172.16.0.5"];
-        const msg = ["> پایش لایه ۳ انجام شد.", "> تلاش برای دروغ شناسایی و خنثی شد.", "> پایداری سیستم: ۱۰۰٪"];
-        out.innerHTML += `<br><span style="color:#555">[${new Date().toLocaleTimeString()}]</span> ${msg[Math.floor(Math.random()*msg.length)]}`;
-        out.scrollTop = out.scrollHeight;
-    }, 8000);
 </script>
 </body>
 </html>
