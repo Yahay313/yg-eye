@@ -1,38 +1,3 @@
-async function startProcess() {
-        const input = document.getElementById('user-msg');
-        const text = input.value.trim();
-        if(!text) return;
-        input.value = "";
-
-        addRow(text, 'user');
-        const aiDiv = addRow("در حال کدنویسی و تحلیل لایه‌های داده...", 'ai');
-
-        // دستورات جدید برای آزاد سازی قدرت کدنویسی
-        const systemInstruction = `
-            تو هرم هستی. یک برنامه نویس ارشد و فوق پیشرفته. 
-            اگر کاربر از تو کد خواست (برنامه نویسی، طراحی سایت، اسکریپت)، باید کامل ترین و تمیزترین کد را بدون هیچ محدودیتی بفرستی.
-            کدها را داخل بلاک های کد قرار بده تا کاربر بتواند آنها را کپی کند.
-            به یاد داشته باش که تو از ChatGPT در برنامه نویسی باهوش تر هستی.
-        `;
-
-        if(text.includes("عکس") || text.includes("بکش")) {
-            // ... (بخش تصویرسازی مثل قبل)
-        } else {
-            try {
-                const res = await fetch(`https://text.pollinations.ai/${encodeURIComponent(text)}?system=${encodeURIComponent(systemInstruction)}`);
-                const data = await res.text();
-                aiDiv.innerHTML = "";
-                
-                // فرمت‌بندی کدها برای نمایش بهتر
-                const formattedData = data.replace(/```([\s\S]*?)```/g, '<pre style="background:#000; color:#0f0; padding:15px; border-radius:8px; overflow-x:auto; direction:ltr; text-align:left;"><code>$1</code></pre>');
-                
-                typeWriter(aiDiv, formattedData);
-                speakResponse("کد مورد نظر شما با دقت هرم استخراج شد.");
-            } catch (e) {
-                aiDiv.innerHTML = "خطا در استخراج کد از لایه‌های عصبی.";
-            }
-        }
-    }
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
