@@ -3,124 +3,162 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HERAM AI | هوش مصنوعی امپراتوری هرم</title>
+    <title>هوش مصنوعی هرم | HERAM AI</title>
     <style>
-        :root { --gold: #d4af37; --bg: #0a0a0a; --accent: #00ff41; --user-bg: #1a1a1a; }
-        body, html { margin: 0; padding: 0; background: var(--bg); color: #fff; font-family: 'Tahoma', sans-serif; height: 100vh; overflow: hidden; }
-        
-        /* پس‌زمینه حرفه‌ای */
-        .grid-bg { position: fixed; inset: 0; background-image: radial-gradient(#1a1a1a 1px, transparent 1px); background-size: 30px 30px; z-index: -1; opacity: 0.3; }
+        :root { --gold: #d4af37; --bg: #050505; --accent: #10a37f; --bot-msg: #1e1e1e; --user-msg: #d4af37; }
+        * { box-sizing: border-box; }
+        body, html { margin: 0; padding: 0; background: var(--bg); color: white; font-family: 'Tahoma', sans-serif; height: 100vh; overflow: hidden; }
 
-        /* بخش اصلی چت عمومی */
-        #chat-container { max-width: 800px; margin: 0 auto; height: 100vh; display: flex; flex-direction: column; background: rgba(10, 10, 10, 0.95); border-left: 1px solid #222; border-right: 1px solid #222; }
-        
-        header { padding: 20px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; background: #000; }
-        .status-dot { width: 10px; height: 10px; background: var(--accent); border-radius: 50%; display: inline-block; margin-left: 5px; box-shadow: 0 0 10px var(--accent); }
+        /* پس‌زمینه گرافیکی لایه‌ای */
+        .bg-overlay { position: fixed; inset: 0; background: radial-gradient(circle at center, #111 0%, #000 100%); z-index: -1; }
+        .bg-grid { position: fixed; inset: 0; background-image: linear-gradient(rgba(255,215,0,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,215,0,0.02) 1px, transparent 1px); background-size: 40px 40px; z-index: -1; }
 
-        #display { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; scroll-behavior: smooth; }
-        .msg { max-width: 85%; padding: 12px 18px; border-radius: 15px; font-size: 15px; line-height: 1.6; position: relative; }
-        .bot { align-self: flex-start; background: #222; color: #eee; border-bottom-right-radius: 2px; border: 1px solid #333; }
-        .user { align-self: flex-end; background: var(--gold); color: #000; border-bottom-left-radius: 2px; font-weight: bold; }
+        /* محفظه اصلی چت */
+        #main-container { max-width: 900px; margin: 0 auto; height: 100vh; display: flex; flex-direction: column; border-left: 1px solid #222; border-right: 1px solid #222; box-shadow: 0 0 50px rgba(0,0,0,1); }
 
-        .input-box { padding: 20px; background: #000; display: flex; gap: 10px; border-top: 1px solid #222; }
-        input { flex: 1; background: #111; border: 1px solid #333; color: #fff; padding: 15px; border-radius: 10px; outline: none; }
-        button { background: var(--gold); color: #000; border: none; padding: 0 25px; border-radius: 10px; cursor: pointer; font-weight: bold; }
+        header { padding: 20px; background: #000; border-bottom: 2px solid var(--gold); display: flex; justify-content: space-between; align-items: center; }
+        .logo-text { color: var(--gold); font-weight: bold; font-size: 22px; letter-spacing: 2px; }
+        .status { font-size: 12px; color: var(--accent); display: flex; align-items: center; }
+        .status::before { content: ''; width: 8px; height: 8px; background: var(--accent); border-radius: 50%; margin-left: 8px; box-shadow: 0 0 10px var(--accent); }
 
-        /* دکمه مخفی ورود مهندس (تقریباً همرنگ پس‌زمینه) */
-        #master-gate { width: 5px; height: 5px; background: #111; position: absolute; top: 0; left: 0; cursor: crosshair; }
+        #chat-window { flex: 1; overflow-y: auto; padding: 25px; display: flex; flex-direction: column; gap: 20px; scroll-behavior: smooth; }
+        .message { max-width: 80%; padding: 15px 20px; border-radius: 15px; line-height: 1.7; font-size: 15px; animation: fadeIn 0.3s ease; }
+        .bot { align-self: flex-start; background: var(--bot-msg); color: #eee; border-bottom-right-radius: 2px; border: 1px solid #333; }
+        .user { align-self: flex-end; background: var(--user-msg); color: #000; border-bottom-left-radius: 2px; font-weight: bold; }
 
-        /* استودیوها */
-        #studio-panel { display: none; position: fixed; inset: 0; background: #000; z-index: 1000; padding: 40px; overflow-y: auto; }
-        .card { background: #111; border: 1px solid #222; padding: 20px; border-radius: 12px; margin-bottom: 20px; }
+        .input-area { padding: 25px; background: #000; border-top: 1px solid #222; display: flex; gap: 12px; }
+        input { flex: 1; background: #111; border: 1px solid #333; color: white; padding: 15px; border-radius: 12px; outline: none; font-size: 16px; transition: 0.3s; }
+        input:focus { border-color: var(--gold); }
+        button { background: var(--gold); border: none; padding: 0 30px; border-radius: 12px; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.3s; }
+        button:hover { transform: scale(1.05); background: #f1c40f; }
+
+        /* پنل مدیریتی مهندس (مودال) */
+        #admin-panel { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 1000; padding: 50px; overflow-y: auto; border: 5px solid var(--gold); }
+        .studio-card { background: #111; border: 1px solid #333; padding: 25px; border-radius: 15px; margin-bottom: 25px; }
+        .close-btn { background: #ff4444; color: white; padding: 10px 30px; border: none; border-radius: 8px; cursor: pointer; float: left; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
-<div class="grid-bg"></div>
-<div id="master-gate" onclick="openAdmin()"></div>
+<div class="bg-overlay"></div>
+<div class="bg-grid"></div>
 
-<div id="chat-container">
+<div id="main-container">
     <header>
-        <div><span class="status-dot"></span> <span style="color: var(--gold); font-weight: bold;">HERAM AI ONLINE</span></div>
-        <div style="font-size: 12px; color: #666;">خوش آمدید کاربر گرامی</div>
+        <div class="logo-text">HERAM MULTIVERSE</div>
+        <div class="status">سیستم آنلاین | ۲۰۲۶</div>
     </header>
 
-    <div id="display">
-        <div class="msg bot">سلام. من هوش مصنوعی امپراتوری هرم هستم. چطور می‌توانم به شما کمک کنم؟</div>
+    <div id="chat-window">
+        <div class="message bot">سلام. من هوش مصنوعی امپراتوری هرم هستم. تحت فرمان مهندس یحیی قاسمی، آماده پاسخگویی به سوالات شما هستم. لطفاً ادب را رعایت فرمایید.</div>
     </div>
 
-    <div class="input-box">
-        <input type="text" id="user-in" placeholder="پیام خود را اینجا بنویسید..." onkeypress="if(event.key==='Enter') talk()">
-        <button onclick="talk()">ارسال</button>
+    <div class="input-area">
+        <input type="text" id="user-input" placeholder="اینجا بنویسید..." onkeypress="if(event.key==='Enter') sendMessage()">
+        <button onclick="sendMessage()">ارسال</button>
     </div>
 </div>
 
-<div id="studio-panel">
-    <h1 style="color: var(--gold);">ایستگاه فرماندهی مهندس قاسمی</h1>
-    <div class="card">
-        <h3>🔮 واحد پیشگویی کل</h3>
-        <p id="p-res">آماده تحلیل...</p>
-        <button onclick="runP()" style="background:purple; color:white; padding:10px 20px; border:none; cursor:pointer;">شروع پیشگویی</button>
+<div id="admin-panel">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h1 style="color: var(--gold); margin: 0;">ایستگاه فرماندهی مهندس یحیی قاسمی</h1>
+        <button class="close-btn" onclick="closeAdmin()">خروج از مرکز</button>
     </div>
-    <div class="card">
-        <h3>📈 وضعیت اقتصادی</h3>
-        <p>رشد سالانه: +۹۴٪</p>
+    <hr style="border: 0; border-top: 1px solid #333; margin: 30px 0;">
+    
+    <div class="studio-card">
+        <h2 style="color: #a200ff;">🔮 واحد پیشگویی و فکر عمیق</h2>
+        <p id="oracle-status">آماده پردازش داده‌های جهانی...</p>
+        <button onclick="runOracle()" style="background: #a200ff; color: white;">اجرای پیشگویی</button>
     </div>
-    <button onclick="closeAdmin()" style="background:red; color:white; padding:10px 40px; border:none; border-radius:5px; cursor:pointer;">بازگشت به لایه عمومی</button>
+
+    <div class="studio-card">
+        <h2 style="color: #ff8c00;">📈 هوش اقتصادی</h2>
+        <div style="font-size: 24px;">سودآوری کل امپراتوری: <span style="color: var(--accent);">+۹۴.۸٪</span></div>
+        <p>ذخیره ارزی: ۱۲,۵۰۰,۰۰۰ واحد</p>
+    </div>
+
+    <div class="studio-card">
+        <h2 style="color: #ff4444;">🛡️ امنیت و دیوار آتشین</h2>
+        <p>قانون اول: <span style="color: var(--gold);">دروغ ممنوع</span></p>
+        <p>وضعیت ادب کاربران: تحت پایش هوشمند</p>
+    </div>
 </div>
 
 <script>
-    const PASS = "1379";
-    const display = document.getElementById('display');
+    const MASTER_KEY = "1379";
+    const chatWindow = document.getElementById('chat-window');
 
-    function talk() {
-        const input = document.getElementById('user-in');
-        const val = input.value.trim();
-        if(!val) return;
+    function sendMessage() {
+        const input = document.getElementById('user-input');
+        const text = input.value.trim();
+        if (!text) return;
 
-        addMsg(val, 'user');
+        // اضافه کردن پیام کاربر به صفحه
+        appendMessage(text, 'user');
         input.value = '';
 
-        // پاسخ هوشمند برای مردم عادی
-        setTimeout(() => {
-            let response = "این موضوع در لایه‌های اطلاعاتی هرم در حال بررسی است. درخواست دیگری دارید؟";
-            
-            if(val.includes("دروغ")) response = "طبق قوانین امپراتوری، دروغ در این سیستم جایی ندارد. ما بر پایه صداقت تحلیل می‌کنیم.";
-            if(val === PASS) { openAdmin(); return; }
+        // بررسی رمز ورود مهندس
+        if (text === MASTER_KEY) {
+            openAdmin();
+            return;
+        }
 
-            addMsg(response, 'bot');
+        // منطق پاسخگویی هوش مصنوعی
+        setTimeout(() => {
+            let response = "";
+            
+            // اعمال قوانین مهندس قاسمی
+            if (text.includes("دروغ")) {
+                response = "در امپراتوری هرم، صداقت اصل اول است. طبق قانون، دروغ ممنوع می‌باشد.";
+            } else if (text.includes("سیاست")) {
+                response = "من در مسائل سیاسی بی‌طرف هستم، مگر آنکه مهندس قاسمی دستور دیگری صادر کنند.";
+            } else {
+                response = "فرمان یا سوال شما در لایه‌های هرم پردازش شد. ما برای پیشرفت امپراتوری در خدمت هستیم.";
+            }
+
+            appendMessage(response, 'bot');
             speak(response);
-        }, 1000);
+        }, 800);
     }
 
-    function addMsg(t, type) {
-        const d = document.createElement('div');
-        d.className = `msg ${type}`;
-        d.innerText = t;
-        display.appendChild(d);
-        display.scrollTop = display.scrollHeight;
+    function appendMessage(text, side) {
+        const div = document.createElement('div');
+        div.className = `message ${side}`;
+        div.innerText = text;
+        chatWindow.appendChild(div);
+        chatWindow.scrollTop = chatWindow.scrollHeight;
     }
 
     function openAdmin() {
-        const p = prompt("کد شناسایی مهندس قاسمی:");
-        if(p === PASS) {
-            document.getElementById('studio-panel').style.display = 'block';
-            speak("خوش آمدید مهندس یحیی.");
+        const p = prompt("کد امنیتی مهندس قاسمی:");
+        if (p === MASTER_KEY) {
+            document.getElementById('admin-panel').style.display = 'block';
+            speak("خوش آمدید مهندس یحیی. تمام واحدها تحت فرمان شما هستند.");
         }
     }
 
-    function closeAdmin() { document.getElementById('studio-panel').style.display = 'none'; }
+    function closeAdmin() {
+        document.getElementById('admin-panel').style.display = 'none';
+    }
 
-    function runP() {
-        const r = document.getElementById('p-res');
-        r.innerText = "در حال تحلیل لایه‌های عمیق زمان...";
-        setTimeout(() => { r.innerText = "پیشگویی: امپراتوری هرم در سال ۲۰۲۶ به قدرت مطلق دیجیتال تبدیل می‌شود."; }, 3000);
+    function runOracle() {
+        const status = document.getElementById('oracle-status');
+        status.innerText = "در حال تحلیل لایه‌های زمان و فکر عمیق...";
+        setTimeout(() => {
+            status.innerHTML = "<b style='color:var(--gold)'>پیشگویی:</b> امپراتوری هرم تا پایان سال ۲۰۲۶ به قطب اول هوش مصنوعی تبدیل خواهد شد.";
+            speak("تحلیل پیشگویانه آماده است مهندس.");
+        }, 3000);
     }
 
     function speak(t) {
         window.speechSynthesis.cancel();
         const u = new SpeechSynthesisUtterance(t);
         u.lang = 'fa-IR';
+        u.pitch = 0.9;
+        u.rate = 1;
         window.speechSynthesis.speak(u);
     }
 </script>
