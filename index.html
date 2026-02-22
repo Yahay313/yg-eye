@@ -3,317 +3,211 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HERAM EMPIRE | Ultimate Studio 2026</title>
+    <title>HERAM EMPIRE | مقتدر و پایدار</title>
     <style>
         :root { 
             --bg: #050505; --accent: #10a37f; --gold: #ffd700; 
-            --psy: #4a90e2; --circuit: #00ff41; --white: #ececec; 
-        }
-        body { background: var(--bg); color: var(--white); font-family: Tahoma, sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
-        
-        /* سایدبار و پنل آمار */
-        .sidebar { width: 270px; background: #000; border-left: 1px solid #222; padding: 20px; display: flex; flex-direction: column; box-shadow: 2px 0 10px rgba(0,0,0,0.5); }
-        .stats-card { background: rgba(255, 215, 0, 0.05); padding: 15px; border-radius: 12px; border: 1px solid #222; margin: 10px 0; font-size: 0.85em; }
-        .pulse { width: 8px; height: 8px; background: #f00; border-radius: 50%; display: inline-block; animation: blink 1s infinite; }
-
-        /* بخش اصلی و چت */
-        .main { flex: 1; display: flex; flex-direction: column; background: radial-gradient(circle at top, #1a1a1a 0%, #050505 100%); }
-        #chat-window { flex: 1; overflow-y: auto; padding: 25px; scroll-behavior: smooth; }
-        
-        /* باکس‌های اختصاصی استودیوها */
-        .studio-box { margin-top: 15px; border: 2px solid var(--gold); border-radius: 15px; overflow: hidden; background: #000; transition: 0.3s; }
-        .psy-mode { border-color: var(--psy); background: rgba(74, 144, 226, 0.05); padding: 15px; }
-        .circuit-mode { border-color: var(--circuit); background: #001100; padding: 10px; }
-        
-        video, img, iframe { width: 100%; display: block; border: none; }
-
-        /* پیام‌ها */
-        .msg-row { padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.03); animation: slideIn 0.4s ease; }
-        .ai { background: rgba(255,255,255,0.02); border-right: 4px solid var(--accent); }
-        
-        /* ورودی فوق پیشرفته */
-        .input-area { padding: 30px; display: flex; justify-content: center; align-items: center; gap: 15px; }
-        .input-box { flex: 1; max-width: 900px; background: #1a1a1a; border-radius: 20px; display: flex; padding: 15px; border: 1px solid #333; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        input { flex: 1; background: transparent; border: none; color: white; outline: none; font-size: 16px; font-family: Tahoma; }
-        .mic-btn { width: 55px; height: 55px; border-radius: 50%; border: 2px solid #444; background: #111; color: #fff; cursor: pointer; font-size: 20px; transition: 0.3s; }
-        .mic-btn.active { border-color: var(--gold); box-shadow: 0 0 20px var(--gold); color: var(--gold); transform: scale(1.1); }
-
-        pre { background: #000; color: #0f0; padding: 15px; border-radius: 10px; direction: ltr; text-align: left; overflow: auto; border: 1px solid #222; }
-        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.2; } }
-        @keyframes slideIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
-    </style>
-</head>
-<body>
-
-<div id="auth-gate" style="position:fixed; inset:0; background:#000; z-index:10000; display:flex; align-items:center; justify-content:center;">
-    <div style="background:#111; padding:50px; border-radius:30px; border:1px solid var(--gold); text-align:center; width:350px; box-shadow: 0 0 100px rgba(255,215,0,0.1);">
-        <h1 style="color:var(--gold); margin-bottom:30px;">EMPIRE OF HERAM</h1>
-        <input type="text" id="u-name" placeholder="نام کاربری امپراتوری" style="width:100%; padding:15px; margin-bottom:20px; background:#222; border:1px solid #444; color:#fff; border-radius:12px; text-align:center;">
-        <button onclick="initEmpire()" style="width:100%; padding:18px; background:var(--gold); border:none; border-radius:12px; cursor:pointer; font-weight:bold; font-size:18px; color:#000;">تایید هویت و ورود</button>
-    </div>
-</div>
-
-<div class="sidebar">
-    <h2 style="color:var(--accent); letter-spacing:3px;">HERAM AI</h2>
-    <div class="stats-card">
-        <div style="margin-bottom:8px;">وضعیت: <span style="color:var(--accent)">ONLINE</span></div>
-        <div style="margin-bottom:8px;">کاربران فعال: <span id="online-val">۱,۴۰۵</span></div>
-        <div>پردازش عصبی: <span><span class="pulse"></span> LIVE</span></div>
-    </div>
-    <div style="font-size: 0.8em; color: #555; margin-top: 20px;">
-        • استودیو ویدیو: فعال<br>
-        • استودیو عکس: فعال<br>
-        • استودیو مدار: فعال<br>
-        • کلینیک روان‌شناسی: فعال
-    </div>
-    <div style="margin-top:auto; padding:15px; border-top:1px solid #222; color:var(--gold);" id="user-display">👤 Guest</div>
-</div>
-
-<div class="main">
-    <div id="chat-window"></div>
-    <div class="input-area">
-        <button class="mic-btn" id="mic-trigger" onclick="toggleSpeech()">🎤</button>
-        <div class="input-box">
-            <input type="text" id="user-input" placeholder="فرمان صوتی بدهید یا تایپ کنید..." onkeypress="if(event.key==='Enter') processInput()">
-            <button onclick="processInput()" style="background:var(--accent); color:white; border:none; border-radius:15px; padding:0 25px; cursor:pointer; font-weight:bold;">اجرا</button>
-        </div>
-    </div>
-</div>
-
-<script>
-    let isListening = false;
-    const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
-    const recognition = new SpeechRec();
-    recognition.lang = 'fa-IR';
-    recognition.continuous = true;
-
-    function initEmpire() {
-        const name = document.getElementById('u-name').value;
-        if(!name) return alert("نام امپراتور الزامی است.");
-        localStorage.setItem('heram_master', name);
-        document.getElementById('auth-gate').style.opacity = '0';
-        setTimeout(() => {
-            document.getElementById('auth-gate').style.display = 'none';
-            document.getElementById('user-display').innerText = `👑 ${name}`;
-            speak(`خوش آمدید ارباب ${name}. تمام سیستم‌های هرم در خدمت شما هستند.`);
-            addMsg(`امپراتور ${name}، هسته مرکزی هرم با موفقیت بارگذاری شد. آماده اجرای فرامین در تمام استودیوها هستم.`, 'ai');
-        }, 500);
-        
-        setInterval(() => {
-            const count = Math.floor(1400 + Math.random() * 80);
-            document.getElementById('online-val').innerText = count.toLocaleString('fa-IR');
-        }, 3000);
-    }
-
-    function toggleSpeech() {
-        const btn = document.getElementById('mic-trigger');
-        if(!isListening) {
-            isListening = true; btn.classList.add('active'); recognition.start();
-        } else {
-            isListening = false; btn.classList.remove('active'); recognition.stop();
-        }
-    }
-
-    recognition.onresult = (e) => {
-        const transcript = e.results[e.results.length - 1][0].transcript;
-        document.getElementById('user-input').value = transcript;
-        processInput();
-    };
-
-    async function processInput() {
-        const inputField = document.getElementById('user-input');
-        const query = inputField.value.trim();
-        if(!query) return;
-        inputField.value = "";
-
-        addMsg(query, 'user');
-        const aiResponse = addMsg("در حال فراخوانی موتور استودیو...", 'ai');
-
-        // ۱. استودیو روان‌شناسی
-        if(query.includes("حالم") || query.includes("مشاوره") || query.includes("احساس")) {
-            aiResponse.innerHTML = `<div class="psy-mode">🧠 <b>کلینیک هرم:</b> تحلیل لایه‌های ذهنی...<br><p>ارباب، من نوسانات انرژی کلامی شما را تحلیل کردم. پیشنهاد می‌کنم روی اهداف بزرگتان تمرکز کنید.</p><div style="height:5px; background:var(--psy); width:70%; border-radius:5px;"></div></div>`;
-            speak("من در کنار شما هستم. تحلیل‌های من نشان‌دهنده قدرت درونی شماست.");
-        } 
-        // ۲. استودیو مدار الکتریکی
-        else if(query.includes("مدار") || query.includes("الکترونیک")) {
-            aiResponse.innerHTML = `<div class="studio-box circuit-mode">⚡ <b>مهندسی هرم:</b> طراحی مدار فیزیکی...<br><iframe srcdoc="<html><body style='background:#000;color:#0f0;font-family:monospace;padding:10px;'>[LAB] Simulation Active<br>---<br>(+)--[Switch]--[LED]--(-)<br>جریان برقرار است.</body></html>" style="height:150px;"></iframe></div>`;
-            speak("نقشه فنی مدار در آزمایشگاه مجازی هرم رندر شد.");
-        }
-        // ۳. استودیو عکس و ویدیو
-        else if(query.includes("عکس") || query.includes("ویدیو") || query.includes("بکش") || query.includes("تصویر")) {
-            const isVideo = query.includes("ویدیو");
-            aiResponse.innerHTML = `🎬 در حال رندرینگ حرفه‌ای...`;
-            setTimeout(() => {
-                const media = isVideo ? `<video controls autoplay loop><source src="https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4"></video>` : `<img src="https://pollinations.ai/p/${encodeURIComponent(query)}?width=1024&height=1024&model=flux">`;
-                aiResponse.innerHTML = `<div class="studio-box">${media}<div style="padding:10px; display:flex; gap:10px;"><button style="flex:1; background:#333; color:#fff; border:none; padding:8px; border-radius:5px; cursor:pointer;" onclick="alert('ارسال به شبکه‌های اجتماعی...')">انتشار جهانی</button></div></div>`;
-                speak("خروجی استودیو رسانه آماده شد.");
-            }, 3000);
-        }
-        // ۴. چت و کدنویسی عمومی
-        else {
-            try {
-                const res = await fetch(`https://text.pollinations.ai/${encodeURIComponent(query)}?system=You are Heram AI, the ultimate empire assistant. You are an expert in coding, psychology, and engineering. Answer in Persian.`);
-                const data = await res.text();
-                aiResponse.innerHTML = data.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
-                speak(data.replace(/```[\s\S]*?```/g, "کد در پنجره نمایش داده شد."));
-            } catch(e) { aiResponse.innerHTML = "خطا در اتصال به هسته مرکزی."; }
-        }
-    }
-
-    function addMsg(t, s) {
-        const win = document.getElementById('chat-window');
-        const row = document.createElement('div');
-        row.className = `msg-row ${s==='ai'?'ai':''}`;
-        row.innerHTML = `<div style="width:90%; margin:auto; display:flex; gap:15px;"><b>${s==='user'?'MASTER':'HERAM'}:</b> <div class="txt">${t}</div></div>`;
-        win.appendChild(row);
-        win.scrollTop = win.scrollHeight;
-        return row.querySelector('.txt');
-    }
-
-    function speak(t) {
-        window.speechSynthesis.cancel();
-        const u = new SpeechSynthesisUtterance(t);
-        u.lang = 'fa-IR'; u.rate = 1.0; u.pitch = 0.9;
-        window.speechSynthesis.speak(u);
-    }
-</script>
-</body>
-</html>
-<!DOCTYPE html>
-<html lang="fa" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HERAM EMPIRE | Ultimate AI Hub</title>
-    <style>
-        :root { 
-            --bg: #050505; --accent: #10a37f; --gold: #ffd700; 
-            --psy: #4a90e2; --circuit: #00ff41; --white: #ececec; --chat: #8e44ad;
+            --psy: #4a90e2; --circuit: #00ff41; --white: #ececec;
         }
         body { background: var(--bg); color: var(--white); font-family: Tahoma, sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
         
         /* سایدبار */
-        .sidebar { width: 270px; background: #000; border-left: 1px solid #222; padding: 20px; display: flex; flex-direction: column; }
-        .status-tag { font-size: 10px; background: #222; padding: 3px 8px; border-radius: 4px; color: var(--gold); margin-bottom: 5px; display: inline-block; }
+        .sidebar { width: 280px; background: #000; border-left: 1px solid #222; padding: 20px; display: flex; flex-direction: column; overflow-y: auto; }
+        .pro-label { font-size: 10px; background: var(--gold); color: #000; padding: 2px 6px; border-radius: 3px; font-weight: bold; margin-bottom: 10px; display: inline-block; }
+        
+        /* پنل فرماندهی اختصاصی مهندس */
+        .engineer-panel { background: rgba(255, 215, 0, 0.05); border: 1px solid var(--gold); border-radius: 12px; padding: 15px; margin-top: 15px; font-size: 0.85em; }
+        .cmd-btn { background: #111; color: var(--gold); border: 1px solid var(--gold); padding: 7px; border-radius: 6px; cursor: pointer; width: 100%; margin-top: 8px; font-size: 11px; transition: 0.3s; }
+        .cmd-btn:hover { background: var(--gold); color: #000; }
 
-        /* بخش اصلی چت */
-        .main { flex: 1; display: flex; flex-direction: column; background: radial-gradient(circle at top, #151515 0%, #050505 100%); }
+        /* پنجره گفتگو */
+        .main { flex: 1; display: flex; flex-direction: column; background: radial-gradient(circle at top, #181818 0%, #050505 100%); }
         #chat-window { flex: 1; overflow-y: auto; padding: 25px; scroll-behavior: smooth; }
         
-        /* باکس‌های گفتگو و استودیوها */
-        .msg-row { padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.02); animation: fadeIn 0.3s ease; }
-        .ai { background: rgba(255,255,255,0.01); border-right: 3px solid var(--accent); }
-        .ai.consultant { border-right-color: var(--chat); background: rgba(142, 68, 173, 0.05); } /* رنگ مخصوص مشاوره عمومی */
+        .msg-row { padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.02); animation: fadeIn 0.4s ease; }
+        .ai { background: rgba(16, 163, 127, 0.02); border-right: 4px solid var(--accent); }
+        
+        /* استودیو کارت‌ها */
+        .studio-card { margin-top: 15px; border: 1px solid #333; border-radius: 15px; background: #000; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.6); }
+        .studio-header { padding: 10px 15px; background: rgba(255,255,255,0.05); font-size: 11px; display: flex; justify-content: space-between; border-bottom: 1px solid #222; }
+        .studio-content { padding: 15px; }
+        img, video { width: 100%; border-radius: 8px; }
 
-        .pro-card { margin-top: 15px; border: 1px solid #333; border-radius: 12px; background: #0a0a0a; overflow: hidden; }
-        .card-header { padding: 10px 15px; background: rgba(255,255,255,0.05); font-size: 12px; display: flex; justify-content: space-between; }
-        .card-body { padding: 15px; font-size: 14px; line-height: 1.6; }
-
-        /* ورودی */
-        .input-area { padding: 25px; display: flex; justify-content: center; align-items: center; gap: 12px; }
-        .input-box { flex: 1; max-width: 900px; background: #1a1a1a; border-radius: 15px; display: flex; padding: 12px 20px; border: 1px solid #333; }
+        /* ورودی هوشمند */
+        .input-area { padding: 25px; display: flex; justify-content: center; align-items: center; gap: 15px; background: rgba(0,0,0,0.4); }
+        .input-box { flex: 1; max-width: 900px; background: #1a1a1a; border-radius: 18px; display: flex; padding: 12px 20px; border: 1px solid #333; }
         input { flex: 1; background: transparent; border: none; color: white; outline: none; font-size: 16px; }
-        .btn-round { width: 50px; height: 50px; border-radius: 50%; border: 1px solid #444; background: #111; color: #fff; cursor: pointer; transition: 0.3s; }
-        .btn-round.active { border-color: var(--gold); box-shadow: 0 0 15px var(--gold); color: var(--gold); }
+        .mic-btn { width: 55px; height: 55px; border-radius: 50%; border: 2px solid #333; background: #111; color: #fff; cursor: pointer; font-size: 20px; }
+        .mic-btn.active { border-color: var(--gold); box-shadow: 0 0 20px var(--gold); color: var(--gold); transform: scale(1.05); }
 
+        pre { background: #000; color: #0f0; padding: 15px; border-radius: 10px; direction: ltr; text-align: left; overflow: auto; font-family: monospace; border: 1px solid #222; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
 <div id="auth-gate" style="position:fixed; inset:0; background:#000; z-index:10000; display:flex; align-items:center; justify-content:center;">
-    <div style="background:#111; padding:40px; border-radius:25px; border:1px solid var(--gold); text-align:center; width:320px;">
-        <h2 style="color:var(--gold); margin:0;">HERAM EMPIRE</h2>
-        <p style="font-size:12px; color:#666;">سیستم یکپارچه استودیو و مشاوره</p>
-        <input type="text" id="u-name" placeholder="نام شما" style="width:100%; padding:14px; margin:20px 0; background:#222; border:1px solid #444; color:#fff; border-radius:10px; text-align:center;">
-        <button onclick="init()" style="width:100%; padding:15px; background:var(--gold); border:none; border-radius:10px; cursor:pointer; font-weight:bold;">ورود به هسته</button>
+    <div style="background:#111; padding:50px; border-radius:30px; border:1px solid var(--gold); text-align:center; width:350px; box-shadow: 0 0 100px rgba(255,215,0,0.15);">
+        <h2 style="color:var(--gold); margin-bottom:5px;">HERAM EMPIRE</h2>
+        <p style="font-size:12px; color:#666; margin-bottom:30px;">سیستم مدیریت یکپارچه مهندس قاسمی</p>
+        <input type="text" id="u-name" placeholder="نام کاربری مهندس" style="width:100%; padding:15px; margin-bottom:15px; background:#1a1a1a; border:1px solid #333; color:#fff; border-radius:12px; text-align:center;">
+        <button onclick="loginProcess()" style="width:100%; padding:18px; background:var(--gold); border:none; border-radius:12px; cursor:pointer; font-weight:bold; font-size:17px; color:#000;">تایید هویت و ورود</button>
+        <div style="margin-top:20px; color:var(--gold); font-size:11px; cursor:pointer;" onclick="recoverAlert()">بازیابی رمز عبور؟</div>
     </div>
 </div>
 
 <div class="sidebar">
-    <h2 style="color:var(--accent)">HERAM <span style="color:var(--gold)">AI</span></h2>
-    <div class="status-tag">ACTIVE CORE v7.0</div>
-    <div style="background:#111; padding:15px; border-radius:10px; font-size: 0.8em; margin-top: 10px;">
-        <div style="color:var(--chat)">● چت و مشاوره عمومی: فعال</div>
-        <div style="color:var(--accent)">● استودیو تولید رسانه: فعال</div>
-        <div style="color:var(--circuit)">● آزمایشگاه مهندسی: فعال</div>
+    <h2 style="color:var(--accent); letter-spacing:1px;">HERAM <span style="color:var(--gold)">PRO</span></h2>
+    <div class="pro-label">PREMIUM SYSTEM</div>
+    
+    <div style="background:#111; padding:15px; border-radius:12px; font-size: 0.8em; line-height: 2;">
+        <div style="color:var(--circuit)">● واحد فنی: عملیاتی</div>
+        <div style="color:var(--psy)">● آنالیزور روانی: فعال</div>
+        <div style="color:var(--gold)">● استودیو رندر: آنلاین</div>
     </div>
-    <div style="margin-top:auto; color:var(--gold);" id="p-info">👤 Master</div>
+
+    <div id="eng-panel" class="engineer-panel">
+        <strong style="color:var(--gold)">پنل فرماندهی مهندس</strong>
+        <p id="eng-note-display" style="font-size:11px; margin:10px 0; color:#aaa; font-style:italic;">یادداشتی ثبت نشده</p>
+        <button class="cmd-btn" onclick="updateNote()">ثبت یادداشت جدید</button>
+        <button class="cmd-btn" style="border-color:#f44; color:#f44;" onclick="logout()">خروج امن</button>
+    </div>
+
+    <div style="margin-top:auto; padding-top:20px; border-top:1px solid #222; color:var(--gold); font-weight:bold;" id="sidebar-user">👤 Guest</div>
 </div>
 
 <div class="main">
     <div id="chat-window"></div>
     <div class="input-area">
-        <button class="btn-round" id="mic-btn" onclick="toggleMic()">🎤</button>
+        <button class="mic-btn" id="mic-main" onclick="toggleVoice()">🎤</button>
         <div class="input-box">
-            <input type="text" id="user-in" placeholder="بپرسید، درد‌ودل کنید یا دستور ساخت بدهید..." onkeypress="if(event.key==='Enter') start()">
-            <button onclick="start()" style="background:var(--accent); color:white; border:none; border-radius:10px; padding:0 20px; cursor:pointer;">➔</button>
+            <input type="text" id="user-cmd" placeholder="فرمان مهندسی، طراحی یا مشاوره..." onkeypress="if(event.key==='Enter') executeCommand()">
+            <button onclick="executeCommand()" style="background:var(--accent); color:white; border:none; border-radius:12px; padding:0 25px; cursor:pointer; font-weight:bold;">اجرا</button>
         </div>
     </div>
 </div>
 
 <script>
+    // --- تنظیمات امنیتی و حافظه دائمی ---
+    const SECURE_PASS = "313"; // مهندس، رمز شما اینجاست
+    let masterName = localStorage.getItem('h_master_name');
+    let isAuthenticated = localStorage.getItem('h_authenticated') === 'true';
+
+    window.onload = function() {
+        if(isAuthenticated && masterName) {
+            setupUI();
+        }
+    };
+
+    function loginProcess() {
+        const name = document.getElementById('u-name').value;
+        const pass = prompt("رمز عبور مهندس را وارد کنید:");
+
+        if(pass === SECURE_PASS) {
+            masterName = name;
+            localStorage.setItem('h_master_name', name);
+            localStorage.setItem('h_authenticated', 'true');
+            setupUI();
+            speak(`خوش آمدید مهندس ${name}. سیستم آماده به خدمت است.`);
+        } else if(pass !== null) {
+            alert("❌ رمز عبور اشتباه است!");
+        }
+    }
+
+    function setupUI() {
+        document.getElementById('auth-gate').style.display = 'none';
+        document.getElementById('sidebar-user').innerText = `👑 مهندس ${masterName}`;
+        document.getElementById('eng-panel').style.display = 'block';
+        document.getElementById('eng-note-display').innerText = localStorage.getItem('h_note') || "یادداشتی برای امروز ثبت نشده.";
+    }
+
+    function recoverAlert() {
+        alert("پروتکل بازیابی فعال شد. لینک تغییر رمز به ایمیل ثبت شده مهندس یحیی قاسمی ارسال گردید.");
+    }
+
+    function updateNote() {
+        const n = prompt("یادداشت مهندسی خود را وارد کنید:");
+        if(n) {
+            localStorage.setItem('h_note', n);
+            document.getElementById('eng-note-display').innerText = n;
+            speak("یادداشت شما در حافظه دائمی ثبت شد.");
+        }
+    }
+
+    function logout() {
+        if(confirm("آیا قصد خروج از امپراتوری را دارید؟")) {
+            localStorage.removeItem('h_authenticated');
+            location.reload();
+        }
+    }
+
+    // --- سیستم هوشمند و استودیوها ---
     let isRec = false;
     const rec = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
     rec.lang = 'fa-IR'; rec.continuous = true;
 
-    function init() {
-        const n = document.getElementById('u-name').value;
-        if(!n) return;
-        localStorage.setItem('h_master', n);
-        document.getElementById('auth-gate').style.display = 'none';
-        document.getElementById('p-info').innerText = `👑 ${n}`;
-        speak(`درود ارباب ${n}. چطور می‌توانم امروز به شما کمک کنم؟`);
-    }
-
-    function toggleMic() {
-        const b = document.getElementById('mic-btn');
-        if(!isRec) { isRec=true; b.classList.add('active'); rec.start(); }
-        else { isRec=false; b.classList.remove('active'); rec.stop(); }
+    function toggleVoice() {
+        const btn = document.getElementById('mic-main');
+        if(!isRec) { isRec=true; btn.classList.add('active'); rec.start(); }
+        else { isRec=false; btn.classList.remove('active'); rec.stop(); }
     }
 
     rec.onresult = (e) => {
-        document.getElementById('user-in').value = e.results[e.results.length-1][0].transcript;
-        start();
+        document.getElementById('user-cmd').value = e.results[e.results.length-1][0].transcript;
+        executeCommand();
     };
 
-    async function start() {
-        const box = document.getElementById('user-in');
-        const val = box.value.trim();
+    async function executeCommand() {
+        const input = document.getElementById('user-cmd');
+        const val = input.value.trim();
         if(!val) return;
-        box.value = "";
+        input.value = "";
 
         addMsg(val, 'user');
-        const aiDiv = addMsg("در حال تفکر...", 'ai');
+        
+        let identity = { 
+            name: "[ هرم مقتدر ]", 
+            color: "var(--gold)", 
+            prompt: `تو هرم مقتدر هستی. خالق تو مهندس ${masterName} است. با ابهت پاسخ بده.` 
+        };
 
-        // منطق تشخیص: استودیو یا چت عمومی؟
-        if(val.includes("بکش") || val.includes("ویدیو") || val.includes("مدار") || val.includes("بازی")) {
-            // ورود به بخش استودیوها (کد قبلی شما در اینجا عمل می‌کند)
-            aiDiv.innerHTML = "🛠️ <b>استودیو هرم:</b> در حال آماده‌سازی ابزارهای تخصصی...";
+        // تفکیک هوشمند رشته‌ها
+        if(val.includes("مدار") || val.includes("فنی") || val.includes("کد")) {
+            identity = { name: "[ واحد فنی هرم ]", color: "var(--circuit)", prompt: "تو یک مهندس ارشد سیستم هستی. پاسخ‌های دقیق و کدنویسی شده بده." };
+        } else if(val.includes("حالم") || val.includes("روانشناسی")) {
+            identity = { name: "[ تحلیلگر روانی هرم ]", color: "var(--psy)", prompt: "تو یک روانشناس دانا هستی. تحلیل عمیق و آرام‌بخش ارائه بده." };
+        } else if(val.includes("بکش") || val.includes("عکس") || val.includes("ویدیو")) {
+            identity = { name: "[ استودیو مدیا ]", color: "var(--gold)", prompt: "تو یک متخصص هنرهای دیجیتال هستی." };
+        }
+
+        const aiTextDiv = addMsg("در حال پردازش لایه‌های عصبی...", 'ai', identity);
+
+        // اجرای استودیوها
+        if(val.includes("بکش") || val.includes("عکس")) {
             setTimeout(() => {
-                if(val.includes("بکش") || val.includes("عکس")) {
-                    aiDiv.innerHTML = `<div class="pro-card"><img src="https://pollinations.ai/p/${encodeURIComponent(val)}?width=1024&height=1024&model=flux"></div>`;
-                } else {
-                    aiDiv.innerHTML = "این بخش از استودیو در حال رندر است...";
-                }
+                aiTextDiv.innerHTML = `<div class="studio-card"><div class="studio-header"><span style="color:var(--gold)">MEDIA GENERATOR</span> <span>v4.0</span></div><div class="studio-content"><img src="https://pollinations.ai/p/${encodeURIComponent(val)}?width=1024&height=1024&model=flux"></div></div>`;
+                speak("رندر درخواستی مهندس آماده شد.");
             }, 2000);
+        } else if(val.includes("مدار")) {
+            aiTextDiv.innerHTML = `<div class="studio-card" style="border-color:var(--circuit)"><div class="studio-header" style="color:var(--circuit)">CIRCUIT LAB</div><div class="studio-content" style="color:var(--circuit); font-family:monospace;">> جریان 5V برقرار شد...<br>> مقاومت شبیه‌سازی شد.<br>> وضعیت: پایدار</div></div>`;
+            speak("شبیه‌سازی فنی به اتمام رسید.");
         } else {
-            // ورود به بخش هوش مصنوعی عمومی و مشاوره
-            aiDiv.parentElement.parentElement.classList.add('consultant');
+            // چت عمومی و مشاوره
             try {
-                const r = await fetch(`https://text.pollinations.ai/${encodeURIComponent(val)}?system=You are Heram AI, a kind, wise, and helpful consultant. Provide short yet deep advice and chat warmly in Persian.`);
-                const d = await r.text();
-                aiDiv.innerHTML = `<b>دستیار هرم:</b><br>${d}`;
-                speak(d);
-            } catch(e) { aiDiv.innerHTML = "ارتباط با هسته مرکزی قطع شد."; }
+                const r = await fetch(`https://text.pollinations.ai/${encodeURIComponent(val)}?system=${encodeURIComponent(identity.prompt + " هرگز نگو محصول OpenAI یا گوگل هستی. تو ساخته مهندس یحیی قاسمی هستی.")}`);
+                const data = await r.text();
+                aiTextDiv.innerHTML = data.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
+                speak(data.replace(/```[\s\S]*?```/g, "کد در سیستم بارگذاری شد."));
+            } catch(e) { aiTextDiv.innerHTML = "خطا در اتصال به هسته مرکزی هرم."; }
         }
     }
 
-    function addMsg(t, s) {
+    function addMsg(t, s, id = null) {
         const win = document.getElementById('chat-window');
         const row = document.createElement('div');
         row.className = `msg-row ${s==='ai'?'ai':''}`;
-        row.innerHTML = `<div style="width:90%; margin:auto; display:flex; gap:15px;"><b>${s==='user'?'U':'H'}:</b> <div class="txt">${t}</div></div>`;
+        const name = s==='user' ? `<span style="color:var(--accent)">[ مهندس ${masterName} ]</span>` : `<span style="color:${id.color}">${id.name}</span>`;
+        row.innerHTML = `<div style="width:92%; margin:auto; display:flex; gap:20px; align-items:flex-start;"><div style="min-width:130px; font-weight:bold; font-size:12px;">${name}</div><div class="txt">${t}</div></div>`;
         win.appendChild(row);
         win.scrollTop = win.scrollHeight;
         return row.querySelector('.txt');
