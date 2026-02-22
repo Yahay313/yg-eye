@@ -2,37 +2,169 @@
 <html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>YG-PYRAMID | OS</title>
+    <title>هرم پلاس | مدیریت: یحیی قاسمی</title>
     <style>
-        :root { --gold: #d4af37; --admin-green: #00ff41; }
-        body, html { margin: 0; padding: 0; background: #000; color: var(--gold); font-family: Tahoma; overflow: hidden; height: 100vh; }
+        :root { --main-red: #ff0000; --gold: #ffd700; --dark-bg: #050505; }
+        body { background: var(--dark-bg); color: white; font-family: Tahoma; margin: 0; overflow-x: hidden; }
+        .heram-header { text-align: center; padding: 30px; background: radial-gradient(circle, #1a0000, #050505); }
+        #heram-logo { font-size: 70px; cursor: pointer; text-shadow: 0 0 20px var(--main-red); }
         
-        #matrix-canvas { position: fixed; top: 0; left: 0; z-index: 1; opacity: 0.3; }
-        .content-overlay { position: relative; z-index: 10; display: flex; flex-direction: column; height: 100vh; }
+        /* بخش تایمر */
+        #timer-bar { background: #111; border-bottom: 2px solid var(--gold); padding: 10px; text-align: center; position: sticky; top: 0; z-index: 100; }
+        #countdown { color: var(--gold); font-weight: bold; font-family: monospace; }
 
-        /* صفحه ورود - با طراحی سنگین‌تر */
-        #login-screen { flex: 1; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle, #111 0%, #000 100%); }
-        .login-box { border: 2px solid var(--gold); padding: 50px; border-radius: 20px; text-align: center; box-shadow: 0 0 50px rgba(212, 175, 55, 0.2); background: #000; }
+        /* چت باکس */
+        .chat-container { max-width: 800px; margin: 20px auto; background: rgba(255,255,255,0.05); border-radius: 15px; padding: 20px; }
+        #chat-box { height: 350px; overflow-y: auto; border-bottom: 1px solid #333; margin-bottom: 15px; padding: 10px; }
+        .msg { margin-bottom: 15px; padding: 10px; border-radius: 8px; line-height: 1.6; }
+        .ai { border-left: 3px solid var(--main-red); background: rgba(255,0,0,0.05); }
+        .master { border-right: 3px solid var(--gold); background: rgba(255,215,0,0.05); text-align: right; }
+
+        /* مدال پرداخت و تخفیف */
+        #payment-modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #000; border: 2px solid var(--gold); padding: 30px; border-radius: 20px; z-index: 1000; text-align: center; width: 350px; box-shadow: 0 0 50px var(--main-red); }
+        .discount-timer { color: #00ff00; font-size: 1.5em; margin: 10px 0; }
         
-        input { padding: 15px; border: 1px solid var(--gold); background: #050505; color: #fff; border-radius: 8px; margin: 15px 0; width: 280px; text-align: center; font-size: 16px; }
-        .enter-btn { background: var(--gold); color: #000; padding: 12px 40px; border: none; cursor: pointer; font-weight: bold; border-radius: 8px; transition: 0.4s; }
-        .enter-btn:hover { background: #fff; transform: scale(1.05); }
-
-        /* پنل مدیریت (مخصوص ارباب) */
-        #admin-panel { display: none; flex: 1; padding: 30px; background: #000; color: var(--admin-green); font-family: 'Courier New', monospace; overflow-y: auto; border: 5px double var(--admin-green); margin: 10px; }
-        .admin-header { border-bottom: 2px solid var(--admin-green); padding-bottom: 10px; margin-bottom: 20px; display: flex; justify-content: space-between; }
-        .log-row { background: rgba(0, 255, 65, 0.05); border: 1px solid rgba(0, 255, 65, 0.2); padding: 10px; margin-bottom: 10px; border-radius: 5px; animation: fadeIn 0.5s; }
-
-        /* محیط چت کاربر */
-        #chat-container { display: none; flex: 1; overflow-y: auto; padding: 20px; flex-direction: column; }
-        .message { margin: 10px; padding: 15px; border-radius: 12px; max-width: 75%; position: relative; }
-        .ai-msg { background: var(--gold); color: #000; align-self: flex-end; font-weight: bold; box-shadow: 0 5px 15px rgba(212, 175, 55, 0.3); }
-        .user-msg { background: #1a1a1a; border: 1px solid #333; align-self: flex-start; }
-
-        /* انیمیشن عنکبوت روی دکمه ارسال */
-        .send-wrapper { position: relative; display: flex; gap: 10px; padding: 20px; background: #080808; border-top: 1px solid var(--gold); display: none; }
-        #send-btn { flex: 1; height: 50px; background: var(--gold); border: none; font-weight: bold; cursor: pointer; border-radius: 5px; position: relative; }
+        button { padding: 10px 20px; border-radius: 5px; cursor: pointer; border: none; font-weight: bold; }
+        .btn-pay { background: var(--gold); color: black; }
         
-        #spider-svg { position: absolute; width: 30px; height: 30px; fill: #000; top: -20px; left: 50%; transform: translateX(-50%); animation: spiderDrop 4s infinite ease-in-out; }
-        @keyframes spiderDrop { 0%, 100% { top: -40px; } 50% { top: 10px; } }
-        @keyframes fadeIn {
+        #admin-panel { display: none; background: #111; border: 1px solid #444; padding: 20px; margin: 20px; }
+    </style>
+</head>
+<body>
+
+<div id="timer-bar">
+    ⏳ زمان دسترسی رایگان پلاس شما: <span id="countdown">60:00</span>
+</div>
+
+<div class="heram-header">
+    <div id="heram-logo" onclick="toggleAdmin()">👁️</div>
+    <h1 style="margin:0; letter-spacing: 10px;">HERAM PRO</h1>
+    <p style="color: #888;">تحت نظارت مستقیم ارباب یحیی قاسمی</p>
+</div>
+
+<div class="chat-container">
+    <div id="chat-box">
+        <div class="msg ai">🕷️ <strong>نگهبان هرم:</strong> درود. شما ۱ ساعت دسترسی رایگان به تمام متخصصین دارید. بپرسید...</div>
+    </div>
+    <div style="display: flex; gap: 5px;">
+        <input type="text" id="userInput" style="flex: 1; padding: 10px; background: #000; color: white; border: 1px solid #333;" placeholder="فرمان صوتی یا متنی...">
+        <button onclick="startVoice()" style="background: #333;">🎤</button>
+        <button onclick="processInput()" style="background: var(--main-red); color: white;">ارسال</button>
+    </div>
+</div>
+
+<div id="payment-modal">
+    <h2 style="color: var(--main-red);">⚠️ زمان به پایان رسید</h2>
+    <p id="modal-text">سخاوت ارباب برای امروز کافیست.</p>
+    <div id="discount-area" style="display:none;">
+        <p style="color: #00ff00;">🔥 تخفیف لحظه‌ای فعال شد!</p>
+        <p>به جای ۱۰ دلار، فقط <strong>۸ دلار</strong> بپردازید</p>
+        <div class="discount-timer" id="d-timer">10:00</div>
+    </div>
+    <button class="btn-pay" onclick="alert('اتصال به درگاه تتر...')">خرید اشتراک PRO</button>
+</div>
+
+<div id="admin-panel">
+    <h3>👁️ کنسول نظارت یحیی</h3>
+    <div id="logs" style="font-size: 0.8em; color: #00ff00;">در حال شنود...</div>
+</div>
+
+<script>
+    let timeLeft = 3600; // 1 ساعت
+    let isPro = false;
+    let discountTime = 600; // 10 دقیقه
+
+    // ۱. تایمر اصلی
+    const timer = setInterval(() => {
+        if (timeLeft > 0) {
+            timeLeft--;
+            let m = Math.floor(timeLeft / 60);
+            let s = timeLeft % 60;
+            document.getElementById('countdown').innerText = `${m}:${s < 10 ? '0'+s : s}`;
+        } else {
+            clearInterval(timer);
+            endGift();
+        }
+    }, 1000);
+
+    // ۲. پایان مهلت و اعلان صوتی
+    function endGift() {
+        const msg = "سخاوت ارباب یحیی برای امروز به پایان رسید. ۱ ساعت دسترسی رایگان شما سپری شد. برای ادامه باید حساب خود را پرو کنید.";
+        speak(msg, 0.5); // صدای باابهت
+        document.getElementById('payment-modal').style.display = 'block';
+        startDiscount();
+    }
+
+    // ۳. سیستم تخفیف لحظه‌ای
+    function startDiscount() {
+        document.getElementById('discount-area').style.display = 'block';
+        const dInterval = setInterval(() => {
+            if (discountTime > 0) {
+                discountTime--;
+                let m = Math.floor(discountTime / 60);
+                let s = discountTime % 60;
+                document.getElementById('d-timer').innerText = `${m}:${s < 10 ? '0'+s : s}`;
+            } else {
+                clearInterval(dInterval);
+                document.getElementById('discount-area').innerHTML = "تخفیف منقضی شد. قیمت: 10 دلار";
+            }
+        }, 1000);
+    }
+
+    // ۴. هوش مصنوعی و صدا
+    function processInput() {
+        const input = document.getElementById('userInput');
+        const text = input.value;
+        if(!text) return;
+        
+        addMsg("👤 شما: " + text, 'master');
+        log("کاربر گفت: " + text);
+
+        setTimeout(() => {
+            let response = "در لایه‌های هرم در حال پردازش هستم...";
+            if(text.includes("ریاضی")) {
+                response = "📐 پروفسور: طبق محاسبات من، این مسئله به سادگی قابل حل است.";
+                speak(response, 0.7);
+            } else {
+                response = "🕷️ نگهبان: فرمان شما با موفقیت در دیتابیس هرم ثبت شد.";
+                speak(response, 0.5);
+            }
+            addMsg(response, 'ai');
+        }, 800);
+        input.value = "";
+    }
+
+    function speak(text, pitch) {
+        const ut = new SpeechSynthesisUtterance(text);
+        ut.lang = 'fa-IR';
+        ut.pitch = pitch;
+        window.speechSynthesis.speak(ut);
+    }
+
+    function addMsg(txt, cls) {
+        const box = document.getElementById('chat-box');
+        box.innerHTML += `<div class="msg ${cls}">${txt}</div>`;
+        box.scrollTop = box.scrollHeight;
+    }
+
+    function toggleAdmin() {
+        const p = document.getElementById('admin-panel');
+        p.style.display = p.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function log(txt) {
+        document.getElementById('logs').innerHTML += `> ${txt}<br>`;
+    }
+
+    function startVoice() {
+        const rec = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+        rec.lang = 'fa-IR';
+        rec.onresult = (e) => {
+            document.getElementById('userInput').value = e.results[0][0].transcript;
+            processInput();
+        };
+        rec.start();
+    }
+</script>
+</body>
+</html>
