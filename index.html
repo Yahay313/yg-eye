@@ -3,154 +3,140 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HERAM OS | مهندس یحیی قاسمی</title>
+    <title>HERAM OS | YG-EYE</title>
     <style>
-        :root { --gold: #ffd700; --bg: #050505; --accent: #10a37f; --red: #ff4444; --oracle: #a200ff; }
-        body, html { margin: 0; padding: 0; background: var(--bg); color: white; font-family: sans-serif; height: 100%; overflow: hidden; }
+        :root { --gold: #ffd700; --bg: #000; --accent: #00ff41; --red: #ff3333; --oracle: #a200ff; }
+        body { margin: 0; background: var(--bg); color: #fff; font-family: Tahoma, Arial; overflow: hidden; height: 100vh; }
         
-        /* درگاه مخفی */
-        #secret-gate { position: fixed; bottom: 5px; right: 5px; width: 15px; height: 15px; background: rgba(255,255,255,0.02); cursor: pointer; z-index: 10000; }
-
-        /* صفحه عمومی */
-        #public-view { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; transition: 0.5s; }
-        .eye { width: 100px; height: 100px; border: 2px solid var(--accent); border-radius: 50%; box-shadow: 0 0 15px var(--accent); animation: pulse 2s infinite; }
+        /* صفحه انتظار عمومی */
+        #public { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; text-align: center; }
+        .scanner { width: 150px; height: 2px; background: var(--accent); box-shadow: 0 0 15px var(--accent); animation: scan 3s infinite; }
         
-        /* پنل مدیریت */
-        #admin-panel { display: none; position: fixed; inset: 0; background: #000; z-index: 5000; flex-direction: row; }
-        .sidebar { width: 220px; background: #080808; border-left: 1px solid #222; padding: 20px; display: flex; flex-direction: column; }
-        .main { flex: 1; padding: 25px; overflow-y: auto; }
-
-        .btn { width: 100%; padding: 12px; margin-bottom: 8px; background: #111; border: 1px solid #333; color: #777; cursor: pointer; border-radius: 6px; text-align: right; }
-        .btn:hover, .btn.active { border-color: var(--gold); color: var(--gold); }
-
-        .studio { display: none; animation: fadeIn 0.3s; }
+        /* پنل مدیریت مخفی */
+        #admin { display: none; position: fixed; inset: 0; background: #050505; z-index: 999; flex-direction: row; border: 2px solid #111; }
+        .sidebar { width: 220px; background: #080808; border-left: 1px solid #222; padding: 20px; }
+        .main { flex: 1; padding: 30px; overflow-y: auto; }
+        
+        .nav-btn { width: 100%; padding: 12px; margin-bottom: 10px; background: #111; border: 1px solid #333; color: #888; cursor: pointer; border-radius: 5px; text-align: right; }
+        .nav-btn.active { border-color: var(--gold); color: var(--gold); box-shadow: 0 0 10px rgba(255,215,0,0.1); }
+        
+        .studio { display: none; animation: fade 0.4s; }
         .studio.active { display: block; }
 
-        @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        #gate { position: fixed; bottom: 5px; right: 5px; width: 10px; height: 10px; background: rgba(255,255,255,0.01); cursor: pointer; z-index: 1000; }
+
+        @keyframes scan { 0%, 100% { transform: translateY(-50px); } 50% { transform: translateY(50px); } }
+        @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
         
-        table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; }
-        th, td { padding: 10px; border-bottom: 1px solid #222; text-align: center; }
-        .inp { width: 100%; padding: 10px; background: #000; border: 1px solid #333; color: #fff; border-radius: 5px; }
+        .card { background: #111; border: 1px solid #222; padding: 20px; border-radius: 10px; margin-bottom: 15px; }
+        input { width: 90%; padding: 10px; background: #000; border: 1px solid #333; color: #fff; margin-bottom: 10px; }
     </style>
 </head>
 <body>
 
-<div id="public-view">
-    <div class="eye"></div>
-    <h2 style="color:var(--accent); margin-top:20px; letter-spacing:2px;">YG-EYE SYSTEM</h2>
-    <p style="color:#444; font-size:12px;">پایش لایه‌های اطلاعاتی در جریان است...</p>
+<div id="public">
+    <div class="scanner"></div>
+    <h1 style="color:var(--accent); letter-spacing: 5px;">HERAM EYE</h1>
+    <p style="color:#333;">PROTECTION ACTIVE | 2026</p>
 </div>
 
-<div id="secret-gate" onclick="openAdmin()"></div>
+<div id="gate" onclick="auth()"></div>
 
-<div id="admin-panel">
+<div id="admin">
     <div class="sidebar">
-        <h3 style="color:var(--gold); font-size:14px;">فرماندهی یحیی قاسمی</h3>
+        <h3 style="color:var(--gold);">COMMANDER</h3>
+        <p style="font-size:10px; color:#444;">YAHYA GHASEMI</p>
         <hr style="border:0; border-top:1px solid #222; margin:15px 0;">
-        <button class="btn active" onclick="showTab('tab-logs')">📡 مانیتورینگ</button>
-        <button class="btn" onclick="showTab('tab-oracle')">🔮 پیشگویی</button>
-        <button class="btn" onclick="showTab('tab-eco')">📈 اقتصاد</button>
-        <button class="btn" onclick="showTab('tab-sec')">🛡️ امنیت/فیلتر</button>
-        <button class="btn" onclick="showTab('tab-tech')">🛠️ تزریق کد</button>
-        <button onclick="location.reload()" class="btn" style="color:var(--red); margin-top:auto;">خروج امن</button>
+        <button class="nav-btn active" onclick="showTab('m-logs')">📡 مانیتورینگ</button>
+        <button class="nav-btn" onclick="showTab('m-oracle')">🔮 واحد پیشگویی</button>
+        <button class="nav-btn" onclick="showTab('m-eco')">📈 هوش اقتصادی</button>
+        <button class="nav-btn" onclick="showTab('m-sec')">🛡️ امنیت کلمات</button>
+        <button onclick="location.reload()" class="nav-btn" style="color:var(--red); margin-top:50px;">خروج</button>
     </div>
 
     <div class="main">
-        <div id="tab-logs" class="studio active">
-            <h2 style="color:var(--gold);">پایش زنده</h2>
-            <table>
-                <thead><tr><th>IP</th><th>پیام</th><th>زمان</th><th>عملیات</th></tr></thead>
-                <tbody id="log-list"></tbody>
-            </table>
-        </div>
-
-        <div id="tab-oracle" class="studio">
-            <h2 style="color:var(--oracle);">واحد فکر عمیق و پیشگویی</h2>
-            <input type="text" id="ora-input" class="inp" placeholder="موضوع را بنویسید...">
-            <button onclick="startOracle()" style="margin-top:10px; background:var(--oracle); border:none; color:white; padding:10px 20px; cursor:pointer; border-radius:5px;">تحلیل جهانی</button>
-            <div id="ora-res" style="margin-top:20px; padding:15px; border:1px dashed var(--oracle); display:none; line-height:1.6;"></div>
-        </div>
-
-        <div id="tab-eco" class="studio">
-            <h2 style="color:orange;">هوش اقتصادی هرم</h2>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
-                <div style="background:#111; padding:15px; border-radius:8px; border-right:4px solid orange;">رشد امپراتوری: <b style="color:var(--accent);">+۸۵٪</b></div>
-                <div style="background:#111; padding:15px; border-radius:8px; border-right:4px solid var(--gold);">بودجه: <b style="color:var(--gold);">۱۲.۵M</b></div>
+        <div id="m-logs" class="studio active">
+            <h2 style="color:var(--gold);">گزارشات زنده</h2>
+            <div class="card" id="log-box" style="height:300px; overflow-y:auto; font-family:monospace; font-size:11px;">
+                > سیستم آماده است مهندس...<br>
             </div>
         </div>
 
-        <div id="tab-sec" class="studio">
-            <h2 style="color:var(--red);">فیلتر کلمات (دروغ ممنوع)</h2>
-            <input type="text" id="word-input" class="inp" placeholder="کلمه جدید...">
-            <button onclick="addWord()" style="margin-top:10px; background:var(--red); color:white; border:none; padding:10px; cursor:pointer;">افزودن</button>
-            <div id="word-tags" style="margin-top:15px;"></div>
+        <div id="m-oracle" class="studio">
+            <h2 style="color:var(--oracle);">واحد فکر عمیق و پیشگویی</h2>
+            <div class="card">
+                <input type="text" id="ora-q" placeholder="موضوع را برای تحلیل وارد کنید...">
+                <button onclick="runOra()" style="background:var(--oracle); color:#fff; border:none; padding:10px 20px; cursor:pointer;">شروع تحلیل لایه‌ای</button>
+                <p id="ora-res" style="margin-top:20px; color:#aaa; line-height:1.6;"></p>
+            </div>
         </div>
 
-        <div id="tab-tech" class="studio">
-            <h2 style="color:var(--accent);">تزریق کد مستقیم</h2>
-            <textarea id="code-area" class="inp" style="height:150px; font-family:monospace;"></textarea>
-            <button onclick="runCode()" style="margin-top:10px; background:var(--accent); color:white; border:none; padding:10px; cursor:pointer;">Inject</button>
+        <div id="m-eco" class="studio">
+            <h2 style="color:orange;">تحلیل اقتصادی امپراتوری</h2>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+                <div class="card">سودآوری کل: <br><span style="color:var(--accent); font-size:24px;">+۸۵٪</span></div>
+                <div class="card">ذخیره استراتژیک: <br><span style="color:var(--gold); font-size:24px;">۱۲.۵M</span></div>
+            </div>
+        </div>
+
+        <div id="m-sec" class="studio">
+            <h2 style="color:var(--red);">دیوار آتشین (دروغ ممنوع)</h2>
+            <div class="card">
+                <div id="w-list"></div>
+                <input type="text" id="w-in" placeholder="کلمه جدید...">
+                <button onclick="addW()" style="background:var(--red); color:#fff; border:none; padding:10px;">افزودن</button>
+            </div>
         </div>
     </div>
 </div>
 
 <script>
-    const PASS = "1379"; // رمز عبور شما مهندس عزیز
+    const CODE = "1379"; // رمز عبور مهندس
     let fails = 0;
-    let forbidden = JSON.parse(localStorage.getItem('yg_words')) || ["دروغ", "هک"];
+    let forbidden = ["دروغ", "هک", "بی‌ادبی"];
 
-    function openAdmin() {
+    function auth() {
         const lock = localStorage.getItem('yg_lock');
-        if(lock && Date.now() < lock) { alert("سیستم تا ۳۰ روز قفل است."); return; }
+        if(lock && Date.now() < lock) { alert("سیستم مسدود است."); return; }
 
-        const p = prompt("کد امنیتی مهندس قاسمی:");
-        if(p === PASS) {
-            document.getElementById('admin-panel').style.display = 'flex';
-            renderWords();
+        const p = prompt("ACCESS CODE:");
+        if(p === CODE) {
+            document.getElementById('admin').style.display = 'flex';
             say("خوش آمدید مهندس یحیی.");
         } else if(p !== null) {
             fails++;
             if(fails >= 5) {
                 localStorage.setItem('yg_lock', Date.now() + (30*24*60*60*1000));
-                alert("پروتکل خودتخریبی فعال شد.");
-            } else { alert("خطا! تلاش مجدد."); }
+                alert("پروتکل ۳۰ روزه فعال شد.");
+            }
         }
     }
 
     function showTab(id) {
         document.querySelectorAll('.studio').forEach(s => s.classList.remove('active'));
-        document.querySelectorAll('.btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
         document.getElementById(id).classList.add('active');
         event.target.classList.add('active');
     }
 
-    function startOracle() {
-        const q = document.getElementById('ora-input').value;
-        if(!q) return;
+    function runOra() {
+        const q = document.getElementById('ora-q').value;
         const res = document.getElementById('ora-res');
-        res.innerHTML = "در حال فکر عمیق و تحلیل لایه‌های داده...";
-        res.style.display = 'block';
+        if(!q) return;
+        res.innerHTML = "در حال تحلیل عمیق داده‌های جهانی...";
         setTimeout(() => {
-            res.innerHTML = `<b>تحلیل پیشگویانه:</b> موضوع "${q}" در حال تحول است. طبق داده‌های کل جهان، این روند در سال آینده به نفع امپراتوری هرم تغییر جهت خواهد داد. سود پیش‌بینی شده: ۷۰٪.`;
-            say("تحلیل به پایان رسید.");
-        }, 2000);
+            res.innerHTML = `<b>پیشگویی هرم برای "${q}":</b> طبق تحلیل الگوریتم‌های پیشرفته، این روند در ۶ ماه آینده به نفع ساختار شما تغییر کرده و منجر به تثبیت قدرت امپراتوری در این بخش خواهد شد.`;
+            say("تحلیل پیشگویانه آماده است.");
+        }, 2500);
     }
 
-    function renderWords() {
-        const div = document.getElementById('word-tags');
-        div.innerHTML = forbidden.map((w,i) => `<span style="border:1px solid red; padding:4px 8px; margin:5px; display:inline-block; font-size:11px;">${w} <b onclick="delWord(${i})" style="cursor:pointer">×</b></span>`).join('');
-        localStorage.setItem('yg_words', JSON.stringify(forbidden));
-    }
-    function addWord() {
-        const v = document.getElementById('word-input').value;
-        if(v) { forbidden.push(v); renderWords(); document.getElementById('word-input').value=''; }
-    }
-    function delWord(i) { forbidden.splice(i,1); renderWords(); }
-
-    function runCode() {
-        try { eval(document.getElementById('code-area').value); alert("انجام شد."); }
-        catch(e) { alert("خطا در کد."); }
+    function addW() {
+        const v = document.getElementById('w-in').value;
+        if(v) { 
+            forbidden.push(v); 
+            document.getElementById('w-list').innerHTML += `<span style="border:1px solid red; padding:5px; margin:5px; display:inline-block;">${v}</span>`;
+            document.getElementById('w-in').value = '';
+        }
     }
 
     function say(t) {
@@ -160,13 +146,12 @@
         window.speechSynthesis.speak(u);
     }
 
-    // تولید لاگ فرضی برای زنده بودن صفحه
+    // شبیه‌ساز لاگ
     setInterval(() => {
-        const list = document.getElementById('log-list');
-        const ip = "5.2.1." + Math.floor(Math.random()*255);
-        const row = `<tr><td>${ip}</td><td>در حال رصد...</td><td>${new Date().toLocaleTimeString()}</td><td><button style="color:red" onclick="this.parentElement.parentElement.remove()">BAN</button></td></tr>`;
-        list.insertAdjacentHTML('afterbegin', row);
-    }, 15000);
+        const box = document.getElementById('log-box');
+        box.innerHTML += `> اسکن آی‌پی 5.12.${Math.floor(Math.random()*255)}.1 ... پاک <br>`;
+        box.scrollTop = box.scrollHeight;
+    }, 5000);
 </script>
 </body>
 </html>
