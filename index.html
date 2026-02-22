@@ -283,3 +283,63 @@ recognition.onresult = async (event) => {
     };
     window.speechSynthesis.speak(utterance);
 };
+// تنظیمات هوشمند زبان
+let currentLanguage = 'fa-IR'; // پیش‌فرض فارسی
+
+async function executeCommand() {
+    const input = document.getElementById('user-cmd');
+    const val = input.value.trim();
+    if(!val) return;
+    input.value = "";
+
+    addMsg(val, 'user');
+
+    // ۱. تشخیص زبان ورودی (الگوریتم تشخیص کاراکتر)
+    // اگر حروف انگلیسی در متن بیشتر باشد، زبان را سوییچ می‌کند
+    const isEnglish = /[a-zA-Z]/.test(val) && val.length > 3; 
+    currentLanguage = isEnglish ? 'en-US' : 'fa-IR';
+
+    let identity = { 
+        name: isEnglish ? "[ HERAM CORE ]" : "[ هرم مقتدر ]", 
+        color: "var(--gold)", 
+        prompt: isEnglish ? 
+            `You are HERAM AI, created by Engineer Yahya Ghasemi. Respond in English.` : 
+            `تو هرم مقتدر هستی، ساخته مهندس یحیی قاسمی. تا زمانی که فارسی حرف می‌زنم، فقط فارسی پاسخ بده.`
+    };
+
+    const aiTextDiv = addMsg(isEnglish ? "Processing..." : "در حال پردازش...", 'ai', identity);
+
+    try {
+        const res = await fetch(`https://text.pollinations.ai/${encodeURIComponent(val)}?system=${encodeURIComponent(identity.prompt)}`);
+        const data = await res.text();
+        
+        aiTextDiv.innerHTML = data.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
+        
+        // ۲. پاسخ صوتی دقیقاً با زبان تشخیص داده شده
+        speak(data, currentLanguage); 
+        
+    } catch(e) {
+        aiTextDiv.innerHTML = isEnglish ? "Connection Error." : "خطا در اتصال به هسته.";
+    }
+}
+
+// ارتقای تابع سخنگو برای پشتیبانی از چند زبان
+function speak(text, lang) {
+    window.speechSynthesis.cancel();
+    // حذف کدها از متن برای خواندن روان‌تر
+    const cleanText = text.replace(/```[\s\S]*?```/g, "");
+    
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+    utterance.lang = lang; // استفاده از زبان تشخیص داده شده
+    
+    // تنظیمات انسانی
+    if(lang === 'fa-IR') {
+        utterance.rate = 0.9;
+        utterance.pitch = 1.0;
+    } else {
+        utterance.rate = 1.0;
+        utterance.pitch = 1.0;
+    }
+
+    window.speechSynthesis.speak(utterance);
+}
