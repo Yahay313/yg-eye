@@ -2,136 +2,67 @@
 <html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>هوش مصنوعی هرم | HERAM INTELLIGENCE</title>
+    <title>HERAM AI</title>
     <style>
-        :root { --gold: #ffd700; --bg: #030303; --text: #e0e0e0; }
-        body { background: var(--bg); color: var(--text); font-family: 'Tahoma', sans-serif; margin: 0; overflow: hidden; }
-        
-        /* محیط اصلی */
-        #app { display: flex; flex-direction: column; height: 100vh; max-width: 800px; margin: 0 auto; border: 1px solid #222; background: #000; }
-        header { padding: 20px; border-bottom: 2px solid var(--gold); text-align: center; background: linear-gradient(to bottom, #111, #000); }
-        #chat-flow { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
-        
-        /* حباب‌های پیام */
-        .msg { padding: 15px; border-radius: 12px; max-width: 85%; line-height: 1.8; font-size: 15px; position: relative; animation: slide 0.3s ease; }
-        .bot { background: #1a1a1a; align-self: flex-start; border-right: 4px solid var(--gold); box-shadow: 5px 5px 15px rgba(0,0,0,0.5); }
-        .user { background: var(--gold); color: #000; align-self: flex-end; font-weight: bold; border-bottom-left-radius: 2px; }
-
-        /* ورودی هوشمند */
-        .input-area { padding: 20px; display: flex; gap: 10px; background: #080808; border-top: 1px solid #222; }
-        input { flex: 1; background: #111; border: 1px solid #333; color: #fff; padding: 15px; border-radius: 8px; outline: none; font-size: 16px; }
-        input:focus { border-color: var(--gold); }
-        button { background: var(--gold); border: none; padding: 0 25px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; }
-        button:hover { background: #fff; transform: scale(1.05); }
-
-        /* پنل فرماندهی مخفی */
-        #admin-core { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.98); z-index: 1000; padding: 40px; border: 10px solid #111; overflow-y: auto; }
-        .panel-card { background: #0a0a0a; border: 1px solid #222; padding: 25px; border-radius: 15px; margin-bottom: 20px; border-right: 5px solid var(--gold); }
-
-        @keyframes slide { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        body { background: #000; color: #fff; font-family: Tahoma; margin: 0; display: flex; flex-direction: column; height: 100vh; }
+        #chat { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 10px; border-bottom: 1px solid #111; }
+        .msg { padding: 12px; border-radius: 5px; max-width: 85%; font-size: 15px; }
+        .bot { background: #111; border: 1px solid #222; align-self: flex-start; color: #0f0; }
+        .user { background: #d4af37; color: #000; align-self: flex-end; font-weight: bold; }
+        .in-bar { padding: 15px; background: #050505; display: flex; gap: 10px; }
+        input { flex: 1; background: #000; border: 1px solid #333; color: #fff; padding: 12px; outline: none; }
+        #admin { display: none; position: fixed; inset: 0; background: #000; z-index: 100; padding: 40px; border: 2px solid #d4af37; }
     </style>
 </head>
 <body>
 
-<div id="app">
-    <header>
-        <span style="letter-spacing: 5px; font-size: 20px; color: var(--gold);">HERAM AI v10.0</span>
-        <div style="font-size: 10px; color: #555; margin-top: 5px;">UNDER COMMAND OF MASTER YAHYA GHASEMI</div>
-    </header>
-
-    <div id="chat-flow">
-        <div class="msg bot">سیستم هوشمند هرم بیدار شد. من بر اساس قانون «دروغ ممنوع» و تحت نظارت مستقیم مهندس یحیی قاسمی آماده پاسخگویی هستم.</div>
+<div id="chat">
     </div>
 
-    <div class="input-area">
-        <input type="text" id="master-in" placeholder="فرمان خود را صادر کنید..." onkeypress="if(event.key==='Enter') processCommand()">
-        <button onclick="processCommand()">ارسال</button>
-    </div>
+<div class="in-bar">
+    <input type="text" id="i" placeholder="فرمان..." onkeypress="if(event.key==='Enter') exec()">
 </div>
 
-<div id="admin-core">
-    <div style="display:flex; justify-content:space-between; align-items:center;">
-        <h1 style="color: var(--gold);">مرکز فرماندهی استودیوها</h1>
-        <button onclick="closeCore()" style="background:red; color:white; padding:10px 20px; border:none; cursor:pointer; border-radius:5px;">خروج امن</button>
-    </div>
-    
-    <div class="panel-card">
-        <h2 style="color: #a200ff;">🔮 پیشگویی و فکر عمیق</h2>
-        <p id="oracle-box">در انتظار فرمان برای تحلیل لایه‌های زمان...</p>
-        <button onclick="deepThink()" style="background:#a200ff; color:white; padding:12px; border:none; width:100%; cursor:pointer;">اجرای عملیات پیشگویی</button>
-    </div>
-
-    <div class="panel-card">
-        <h2 style="color: #00ff41;">📈 هوش اقتصادی امپراتوری</h2>
-        <p>وضعیت پایداری: ۱۰۰٪ | رشد دارایی: +۹۴٪</p>
-    </div>
+<div id="admin">
+    <h2 style="color:#d4af37">مرکز فرماندهی مهندس قاسمی</h2>
+    <hr>
+    <button onclick="runOra()" style="padding:10px; background:purple; color:#fff; border:none; cursor:pointer;">تحلیل پیشگویانه</button>
+    <p id="out"></p>
+    <button onclick="document.getElementById('admin').style.display='none'" style="margin-top:50px; background:red; color:#fff; border:none; padding:10px;">خروج</button>
 </div>
 
 <script>
-    const KEY = "1379";
-    const flow = document.getElementById('chat-flow');
+    const K = "1379";
+    function exec() {
+        const input = document.getElementById('i');
+        const v = input.value.trim();
+        if(!v) return;
 
-    function processCommand() {
-        const input = document.getElementById('master-in');
-        const val = input.value.trim();
-        if(!val) return;
-
-        addMsg(val, 'user');
+        add(v, 'user');
         input.value = '';
 
-        // ورود به مرکز فرماندهی با رمز
-        if(val === KEY) {
-            openCore();
-            return;
-        }
+        if(v === K) { document.getElementById('admin').style.display = 'block'; return; }
 
-        // هوش مصنوعی پاسخگو به مردم
+        // پاسخ کوتاه و فقط در صورت نیاز
         setTimeout(() => {
-            let response = "";
-            if(val.includes("دروغ")) {
-                response = "طبق فرمان مهندس قاسمی، دروغ در این سیستم ممنوع است و من از پاسخ به اطلاعات نادرست معذورم.";
-            } else if(val.includes("سلام")) {
-                response = "درود بر شما. من هوش مصنوعی هرم هستم. چطور می‌توانم در مسیر پیشرفت به شما کمک کنم؟";
-            } else {
-                response = "درخواست شما دریافت شد و در لایه‌های پردازشی هرم ثبت گردید. آیا فرمان دیگری دارید؟";
-            }
-            addMsg(response, 'bot');
-            speak(response);
-        }, 700);
+            let r = "فرمان اجرا شد.";
+            if(v.includes("دروغ")) r = "خطا: دروغ در سیستم هرم ممنوع است.";
+            add(r, 'bot');
+        }, 400);
     }
 
-    function addMsg(t, c) {
+    function add(t, c) {
         const d = document.createElement('div');
-        d.className = `msg ${c}`;
+        d.className = 'msg ' + c;
         d.innerText = t;
-        flow.appendChild(d);
-        flow.scrollTop = flow.scrollHeight;
+        const box = document.getElementById('chat');
+        box.appendChild(d);
+        box.scrollTop = box.scrollHeight;
     }
 
-    function openCore() {
-        const p = prompt("ACCESS CODE:");
-        if(p === KEY) {
-            document.getElementById('admin-core').style.display = 'block';
-            speak("خوش آمدید مهندس یحیی. ایستگاه فرماندهی آماده است.");
-        }
-    }
-
-    function closeCore() { document.getElementById('admin-core').style.display = 'none'; }
-
-    function deepThink() {
-        const box = document.getElementById('oracle-box');
-        box.innerText = "در حال تجمیع لایه‌های اطلاعاتی جهان...";
-        setTimeout(() => {
-            box.innerHTML = "<b style='color:var(--gold)'>پیشگویی:</b> امپراتوری هرم در سال ۲۰۲۶ تمام بازارهای دیجیتال را فتح خواهد کرد.";
-            speak("تحلیل عمیق به پایان رسید.");
-        }, 3000);
-    }
-
-    function speak(t) {
-        window.speechSynthesis.cancel();
-        const u = new SpeechSynthesisUtterance(t);
-        u.lang = 'fa-IR';
-        window.speechSynthesis.speak(u);
+    function runOra() {
+        document.getElementById('out').innerText = "در حال تحلیل...";
+        setTimeout(() => { document.getElementById('out').innerText = "پیشگویی: پایداری مطلق امپراتوری."; }, 2000);
     }
 </script>
 </body>
