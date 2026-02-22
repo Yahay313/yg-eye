@@ -221,3 +221,65 @@
 </script>
 </body>
 </html>
+<div id="voice-mode-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.95); z-index:20000; flex-direction:column; align-items:center; justify-content:center;">
+    <div id="voice-visualizer" class="pulse-ring"></div>
+    <div id="voice-status" style="color:var(--gold); margin-top:30px; font-size:1.5em; font-weight:bold;">در حال شنیدن...</div>
+    <button onclick="closeVoiceMode()" style="margin-top:50px; background:transparent; border:1px solid #444; color:#666; padding:10px 20px; border-radius:30px; cursor:pointer;">خروج از مود صوتی</button>
+</div>
+
+<style>
+    .pulse-ring {
+        width: 150px; height: 150px; background: var(--accent); border-radius: 50%;
+        box-shadow: 0 0 0 0 rgba(16, 163, 127, 0.7);
+        animation: pulse 1.5s infinite;
+        display: flex; align-items: center; justify-content: center;
+    }
+    @keyframes pulse {
+        0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 163, 127, 0.7); }
+        70% { transform: scale(1); box-shadow: 0 0 0 40px rgba(16, 163, 127, 0); }
+        100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 163, 127, 0); }
+    }
+</style>
+let isVoiceModeActive = false;
+
+function startVoiceMode() {
+    isVoiceModeActive = true;
+    document.getElementById('voice-mode-overlay').style.display = 'flex';
+    recognition.start(); // شروع شنیدن
+    speak("مود صوتی فعال شد مهندس. من سراپا گوشم.");
+}
+
+function closeVoiceMode() {
+    isVoiceModeActive = false;
+    document.getElementById('voice-mode-overlay').style.display = 'none';
+    recognition.stop();
+    window.speechSynthesis.cancel();
+}
+
+// مدیریت زنجیره‌ای مکالمه
+recognition.onresult = async (event) => {
+    const transcript = event.results[event.results.length - 1][0].transcript;
+    document.getElementById('voice-status').innerText = "در حال تحلیل...";
+    
+    // ۱. ارسال به هوش مصنوعی
+    const identity = { prompt: "تو هرم مقتدر هستی. پاسخ‌های کوتاه و مکالمه‌ای بده." };
+    const res = await fetch(`https://text.pollinations.ai/${encodeURIComponent(transcript)}?system=${encodeURIComponent(identity.prompt)}`);
+    const reply = await res.text();
+
+    // ۲. نمایش در چت (در پس‌زمینه)
+    addMsg(transcript, 'user');
+    const aiDiv = addMsg(reply, 'ai', {name: "[ هرم صوتی ]", color: "var(--gold)"});
+
+    // ۳. پاسخ صوتی و انتظار برای جمله بعدی شما
+    document.getElementById('voice-status').innerText = "در حال پاسخگویی...";
+    
+    const utterance = new SpeechSynthesisUtterance(reply);
+    utterance.lang = 'fa-IR';
+    utterance.onend = () => {
+        if(isVoiceModeActive) {
+            document.getElementById('voice-status').innerText = "منتظر فرمان شما...";
+            recognition.start(); // بعد از تمام شدن حرف هرم، دوباره گوش می‌دهد
+        }
+    };
+    window.speechSynthesis.speak(utterance);
+};
